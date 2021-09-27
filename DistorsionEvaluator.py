@@ -242,6 +242,19 @@ class ImageGrid:
         return 0
 
 
+def distance(a, b):
+    d = np.sqrt(((a[0] - b[0]) ** 2) + ((a[1] - b[1]) ** 2) + ((a[2] - b[2]) ** 2))
+    return d
+
+
+def string2array(s):
+    s = s.split(" ")
+    s[0] = s[0][1:]
+    s[-1] = s[-1][:-1]
+    s = [float(r) for r in s if r != '']
+    return s
+
+
 class Analyzer:
     pcd_source = None
     pcd_registered = None
@@ -258,13 +271,3 @@ class Analyzer:
         self.points_registered = np.asarray(self.pcd_registered.points)
         self.points_vertex = np.asarray(self.pcd_vertex.points)
 
-    def distance(self, a, b):
-        d = np.sqrt(((a[0] - b[0]) ** 2) + ((a[1] - b[1]) ** 2) + ((a[2] - b[2]) ** 2))
-        return d
-
-    def string2array(self, s):
-        s = s.split(" ")
-        s[0] = s[0][1:]
-        s[-1] = s[-1][:-1]
-        s = [float(r) for r in s if r != '']
-        return s
