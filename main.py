@@ -9,6 +9,7 @@ from numpy import amax
 import matplotlib.pyplot as plt
 import scipy.stats as sc
 from matplotlib.offsetbox import AnchoredText
+from irm_dist_calculator import analyzer as a
 
 """grid = dist.ReferenceGrid(center=(0.08, 0.11, 0.145))
 grid.build()
@@ -28,7 +29,12 @@ ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=
 
 o3d.visualization.draw_geometries([source.pcd, grid.pcd, ref_frame])"""
 
-pcd_source = o3d.io.read_point_cloud("../data/grid.ply")
+analyser = a.Analyzer("../data/")
+analyser.launch_analysis()
+analyser.save_analysis()
+
+# BACKUP
+"""pcd_source = o3d.io.read_point_cloud("../data/grid.ply")
 pcd_registered = o3d.io.read_point_cloud("../data/registeredGrid.ply")
 pcd_vertex = o3d.io.read_point_cloud("../data/registeredGrid_vertex.ply")
 
@@ -177,7 +183,7 @@ ax[1, 2].add_artist(AnchoredText('$\\mu = $' + str(round(mu_median_z, 2)) + '\n$
 
 plt.tight_layout()
 plt.show()
-
+"""
 """pcd_close_to_vertices = o3d.geometry.PointCloud()
 pcd_close_to_vertices.points = o3d.utility.Vector3dVector(points_close_to_vertices)
 # o3d.io.write_point_cloud("../data/sourceCloud_closeToVertices.ply", pcd_close_to_vertices)
