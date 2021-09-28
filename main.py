@@ -1,22 +1,13 @@
-import DistorsionEvaluator as dist
 import open3d as o3d
-import numpy as np
-from numpy import mean
-from numpy import median
-from numpy import array
-from numpy import where
-from numpy import amax
-import matplotlib.pyplot as plt
-import scipy.stats as sc
-from matplotlib.offsetbox import AnchoredText
 from irm_dist_calculator import analyzer as a
+from irm_dist_calculator import referenceGrid as ref
+from irm_dist_calculator import imageGrid as im
 
-"""grid = dist.ReferenceGrid(center=(0.08, 0.11, 0.145))
+grid = ref.ReferenceGrid(center=(0.08, 0.11, 0.145))
 grid.build()
 grid.convert()
-# grid.display([1, 0, 0])
 
-source = dist.ImageGrid("../../im_DICOM/CBCT2/", 448)
+source = im.ImageGrid("../../im_DICOM/CBCT2/", 448)
 source.convert()
 source.save_point_cloud("../data/", "grid")
 
@@ -27,7 +18,7 @@ grid.pcd.paint_uniform_color([1, 0, 0])
 source.pcd.paint_uniform_color([0, 0, 1])
 ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
 
-o3d.visualization.draw_geometries([source.pcd, grid.pcd, ref_frame])"""
+o3d.visualization.draw_geometries([source.pcd, grid.pcd, ref_frame])
 
 analyser = a.Analyzer("../data/")
 analyser.launch_analysis()
