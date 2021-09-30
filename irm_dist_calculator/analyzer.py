@@ -61,8 +61,8 @@ class Analyzer:
         points_mean_nodes_real_grid_pcd.points = o3d.utility.Vector3dVector(self.points_mean_nodes_real_grid)
         points_median_nodes_real_grid_pcd = o3d.geometry.PointCloud()
         points_median_nodes_real_grid_pcd.points = o3d.utility.Vector3dVector(self.points_median_nodes_real_grid)
-        o3d.io.write_point_cloud(self.data_dir + name + "mean_nodes_real_grid.ply", points_mean_nodes_real_grid_pcd)
-        o3d.io.write_point_cloud(self.data_dir + name + "median_nodes_real_grid.ply", points_median_nodes_real_grid_pcd)
+        o3d.io.write_point_cloud(self.data_dir + name + "_mean_nodes_real_grid.ply", points_mean_nodes_real_grid_pcd)
+        o3d.io.write_point_cloud(self.data_dir + name + "_median_nodes_real_grid.ply", points_median_nodes_real_grid_pcd)
 
     def display_results(self):
         diff_mean = (self.points_vertex - self.points_mean_nodes_real_grid) * 1000

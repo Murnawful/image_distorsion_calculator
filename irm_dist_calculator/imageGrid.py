@@ -48,7 +48,6 @@ class ImageGrid:
             self.data[np.where(self.data != 0)] = 1
 
             new_data = np.zeros(self.data.shape)
-            print(self.roi)
             new_data[self.roi] = self.data[self.roi]
 
             coor = np.where(new_data == 1)
