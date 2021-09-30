@@ -14,8 +14,9 @@ class ImageGrid:
     voxelSpacing_z = None
     hu_range = (700, 1700)
     is_loaded = False
+    roi = None
 
-    def __init__(self, path="", slice_number=1):
+    def __init__(self, path="", slice_number=1, image_roi=((0, 0, 0), (1, 1, 1))):
         try:
             self.ds = pdcm.dcmread(path + os.listdir(path)[0])
             self.data = self.ds.pixel_array
@@ -23,6 +24,9 @@ class ImageGrid:
             self.voxelSpacing_y = self.ds.PixelSpacing[1] * 1e-3
             self.voxelSpacing_z = self.ds.SliceThickness * 1e-3
             self.data = np.zeros((self.data.shape[0], self.data.shape[1], slice_number))
+            self.roi = (slice(image_roi[0][1], image_roi[1][1]),
+                        slice(image_roi[0][0], image_roi[1][0]),
+                        slice(image_roi[0][2], image_roi[1][2]))
             i = 0
             for filename in os.listdir(path):
                 if filename.endswith(".dcm") and i != slice_number:
@@ -44,8 +48,8 @@ class ImageGrid:
             self.data[np.where(self.data != 0)] = 1
 
             new_data = np.zeros(self.data.shape)
-            new_data[68:260, 150:300, 90:220] = self.data[68:260, 150:300, 90:220]
-            # new_data[68:264, 150:300, 210:340] = self.data[68:264, 150:300, 210:340]
+            print(self.roi)
+            new_data[self.roi] = self.data[self.roi]
 
             coor = np.where(new_data == 1)
             self.points = np.zeros((coor[0].shape[0], 3))
