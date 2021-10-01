@@ -12,11 +12,12 @@ class ImageGrid:
     voxelSpacing_x = None
     voxelSpacing_y = None
     voxelSpacing_z = None
-    hu_range = (700, 1700)
+    hu_range = None
     is_loaded = False
     roi = None
+    imageIsMri = False
 
-    def __init__(self, path="", slice_number=1, image_roi=((0, 0, 0), (1, 1, 1))):
+    def __init__(self, path="", slice_number=1, image_roi=None, range_hu=(0, 20000), is_mri=False):
         try:
             self.ds = pdcm.dcmread(path + os.listdir(path)[0])
             self.data = self.ds.pixel_array
@@ -24,9 +25,16 @@ class ImageGrid:
             self.voxelSpacing_y = self.ds.PixelSpacing[1] * 1e-3
             self.voxelSpacing_z = self.ds.SliceThickness * 1e-3
             self.data = np.zeros((self.data.shape[0], self.data.shape[1], slice_number))
-            self.roi = (slice(image_roi[0][1], image_roi[1][1]),
-                        slice(image_roi[0][0], image_roi[1][0]),
-                        slice(image_roi[0][2], image_roi[1][2]))
+            self.hu_range = range_hu
+            self.imageIsMri = is_mri
+            if is_mri:
+                self.data_mri = np.zeros(self.data.shape)
+            if image_roi is None:
+                self.roi = None
+            else:
+                self.roi = (slice(image_roi[0][1], image_roi[1][1]),
+                            slice(image_roi[0][0], image_roi[1][0]),
+                            slice(image_roi[0][2], image_roi[1][2]))
             i = 0
             for filename in os.listdir(path):
                 if filename.endswith(".dcm") and i != slice_number:
@@ -43,14 +51,21 @@ class ImageGrid:
 
     def convert(self):
         try:
-            self.data[np.where(self.data < self.hu_range[0])] = 0
-            self.data[np.where(self.data > self.hu_range[1])] = 0
+            new_data = np.zeros(self.data.shape)
+            if self.roi is None:
+                new_data = self.data
+            else:
+                new_data[self.roi] = self.data[self.roi]
+                if self.imageIsMri:
+                    m = np.amax(new_data)
+                    new_data_copy = np.copy(new_data)
+                    new_data[self.roi] = (-1) * new_data_copy[self.roi] + m
+
+            self.data[np.where(new_data < self.hu_range[0])] = 0
+            self.data[np.where(new_data > self.hu_range[1])] = 0
             self.data[np.where(self.data != 0)] = 1
 
-            new_data = np.zeros(self.data.shape)
-            new_data[self.roi] = self.data[self.roi]
-
-            coor = np.where(new_data == 1)
+            coor = np.where(self.data == 1)
             self.points = np.zeros((coor[0].shape[0], 3))
             self.points[:, 0] = coor[0] * self.voxelSpacing_x
             self.points[:, 1] = coor[1] * self.voxelSpacing_y
