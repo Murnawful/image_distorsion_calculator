@@ -37,7 +37,7 @@ class ImageGrid:
                             slice(image_roi[0][2], image_roi[1][2]))
             i = 0
             for filename in os.listdir(path):
-                if filename.endswith(".dcm") and i != slice_number:
+                if filename.endswith(".dcm") and i != slice_number and filename[0] == "I":
                     name = path + filename
                     ds = pdcm.dcmread(name)
                     ds.decompress()

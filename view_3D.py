@@ -1,8 +1,10 @@
 import open3d as o3d
 
-real_grid = o3d.io.read_point_cloud("../data/3DT1_115slices_coreg/registeredGrid_3DT1_115slices_coreg_vertex.ply")
-media_points = o3d.io.read_point_cloud("../data/3DT1_115slices_coreg/3DT1_115slices_coreg_median_nodes_real_grid.ply")
-mean_points = o3d.io.read_point_cloud("../data/3DT1_115slices_coreg/3DT1_115slices_coreg_mean_nodes_real_grid.ply")
+name = "T1Spir_30slices_coreg"
+
+real_grid = o3d.io.read_point_cloud("../data/" + name + "/registeredGrid_" + name + "_vertex.ply")
+media_points = o3d.io.read_point_cloud("../data/" + name + "/" + name + "_median_nodes_real_grid.ply")
+mean_points = o3d.io.read_point_cloud("../data/" + name + "/" + name + "_mean_nodes_real_grid.ply")
 
 ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
 

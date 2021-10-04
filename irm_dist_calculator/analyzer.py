@@ -46,7 +46,10 @@ class Analyzer:
                 for j in range(len(points_close_to_vertices)):
                     if distance(points_close_to_vertices[k, :], points_close_to_vertices[j, :]) < 7e-4:
                         density[k] += 1
-            good_candidates = points_close_to_vertices[np.where(density == np.amax(density))[0]]
+            if points_close_to_vertices != []:
+                good_candidates = points_close_to_vertices[np.where(density == np.amax(density))[0]]
+            else:
+                continue
             good_candidates_mean = np.array([np.mean(good_candidates[:, 0]),
                                              np.mean(good_candidates[:, 1]),
                                              np.mean(good_candidates[:, 2])])
@@ -57,6 +60,10 @@ class Analyzer:
             self.points_median_nodes_real_grid.append(good_candidates_median)
         self.points_mean_nodes_real_grid = np.array(self.points_mean_nodes_real_grid)
         self.points_median_nodes_real_grid = np.array(self.points_median_nodes_real_grid)
+
+    def load_results(self, median_nodes, mean_nodes):
+        self.points_mean_nodes_real_grid = mean_nodes
+        self.points_median_nodes_real_grid = median_nodes
 
     def save_analysis(self, name):
         points_mean_nodes_real_grid_pcd = o3d.geometry.PointCloud()
