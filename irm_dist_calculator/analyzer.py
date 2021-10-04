@@ -18,13 +18,14 @@ class Analyzer:
     points_registered = None
     points_vertex = None
     data_dir = None
+    scope_radius = None
 
     points_close_to_vertices = []
     points_mean_nodes_real_grid = []
     points_median_nodes_real_grid = []
 
     def __init__(self, dir="/", file_source="grid.ply", file_registered="registeredGrid.ply",
-                 file_vertex="registeredGrid_vertex.ply"):
+                 file_vertex="registeredGrid_vertex.ply", scope=2e-3):
         self.data_dir = dir
         self.pcd_source = o3d.io.read_point_cloud(dir + file_source)
         self.pcd_registered = o3d.io.read_point_cloud(dir + file_registered)
@@ -32,12 +33,13 @@ class Analyzer:
         self.points_source = np.asarray(self.pcd_source.points)
         self.points_registered = np.asarray(self.pcd_registered.points)
         self.points_vertex = np.asarray(self.pcd_vertex.points)
+        self.scope_radius = scope
 
     def launch_analysis(self):
         for i in range(self.points_vertex.shape[0]):
             print("Treating node number " + str(i + 1) + " out of " + str(self.points_vertex.shape[0]))
             points_close_to_vertices = [self.points_source[j, :] for j in range(self.points_source.shape[0]) if
-                                        distance(self.points_vertex[i, :], self.points_source[j, :]) < 2e-3]
+                                        distance(self.points_vertex[i, :], self.points_source[j, :]) < self.scope_radius]
             points_close_to_vertices = np.array(points_close_to_vertices)
             density = np.zeros(len(points_close_to_vertices))
             for k in range(len(points_close_to_vertices)):
