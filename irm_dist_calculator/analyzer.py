@@ -24,15 +24,21 @@ class Analyzer:
     points_mean_nodes_real_grid = []
     points_median_nodes_real_grid = []
 
-    def __init__(self, dir="/", file_source="grid.ply", file_registered="registeredGrid.ply",
-                 file_vertex="registeredGrid_vertex.ply", scope=2e-3):
-        self.data_dir = dir
-        self.pcd_source = o3d.io.read_point_cloud(dir + file_source)
-        self.pcd_registered = o3d.io.read_point_cloud(dir + file_registered)
-        self.pcd_vertex = o3d.io.read_point_cloud(dir + file_vertex)
-        self.points_source = np.asarray(self.pcd_source.points)
-        self.points_registered = np.asarray(self.pcd_registered.points)
-        self.points_vertex = np.asarray(self.pcd_vertex.points)
+    def __init__(self, dir_tofile=None,
+                 file_source=None,
+                 file_registered=None,
+                 file_vertex=None,
+                 scope=None):
+        if dir_tofile is not None:
+            self.data_dir = dir_tofile
+            self.pcd_source = o3d.io.read_point_cloud(dir_tofile + file_source)
+            self.pcd_registered = o3d.io.read_point_cloud(dir_tofile + file_registered)
+            self.pcd_vertex = o3d.io.read_point_cloud(dir_tofile + file_vertex)
+            self.points_source = np.asarray(self.pcd_source.points)
+            self.points_registered = np.asarray(self.pcd_registered.points)
+            self.points_vertex = np.asarray(self.pcd_vertex.points)
+        else:
+            pass
         self.scope_radius = scope
 
     def launch_analysis(self):
@@ -48,22 +54,25 @@ class Analyzer:
                         density[k] += 1
             if points_close_to_vertices != []:
                 good_candidates = points_close_to_vertices[np.where(density == np.amax(density))[0]]
+                good_candidates_mean = np.array([np.mean(good_candidates[:, 0]),
+                                                 np.mean(good_candidates[:, 1]),
+                                                 np.mean(good_candidates[:, 2])])
+                good_candidates_median = np.array([np.median(good_candidates[:, 0]),
+                                                   np.median(good_candidates[:, 1]),
+                                                   np.median(good_candidates[:, 2])])
             else:
-                continue
-            good_candidates_mean = np.array([np.mean(good_candidates[:, 0]),
-                                             np.mean(good_candidates[:, 1]),
-                                             np.mean(good_candidates[:, 2])])
-            good_candidates_median = np.array([np.median(good_candidates[:, 0]),
-                                               np.median(good_candidates[:, 1]),
-                                               np.median(good_candidates[:, 2])])
+                good_candidates_mean = np.array([0, 0, 0])
+                good_candidates_median = np.array([0, 0, 0])
             self.points_mean_nodes_real_grid.append(good_candidates_mean)
             self.points_median_nodes_real_grid.append(good_candidates_median)
         self.points_mean_nodes_real_grid = np.array(self.points_mean_nodes_real_grid)
         self.points_median_nodes_real_grid = np.array(self.points_median_nodes_real_grid)
 
     def load_results(self, median_nodes, mean_nodes):
-        self.points_mean_nodes_real_grid = mean_nodes
-        self.points_median_nodes_real_grid = median_nodes
+        mean_nodes = o3d.io.read_point_cloud(mean_nodes)
+        self.points_mean_nodes_real_grid = np.asarray(mean_nodes.points)
+        median_nodes = o3d.io.read_point_cloud(median_nodes)
+        self.points_median_nodes_real_grid = np.asarray(median_nodes.points)
 
     def save_analysis(self, name):
         points_mean_nodes_real_grid_pcd = o3d.geometry.PointCloud()
@@ -74,8 +83,15 @@ class Analyzer:
         o3d.io.write_point_cloud(self.data_dir + name + "_median_nodes_real_grid.ply", points_median_nodes_real_grid_pcd)
 
     def display_results(self):
-        diff_mean = (self.points_vertex - self.points_mean_nodes_real_grid) * 1000
-        diff_median = (self.points_vertex - self.points_median_nodes_real_grid) * 1000
+        diff_mean = []
+        diff_median = []
+        for i in range(len(self.points_vertex)):
+            if (self.points_mean_nodes_real_grid[i, :] != np.array([0, 0, 0])).all():
+                diff_mean.append((self.points_vertex[i, :] - self.points_mean_nodes_real_grid[i, :]) * 1000)
+            if (self.points_median_nodes_real_grid[i, :] != np.array([0, 0, 0])).all():
+                diff_median.append((self.points_vertex[i, :] - self.points_median_nodes_real_grid[i, :]) * 1000)
+        diff_median = np.array(diff_median)
+        diff_mean = np.array(diff_mean)
 
         fig, ax = plt.subplots(2, 3)
         bin_number = 70
@@ -167,6 +183,6 @@ class Analyzer:
         ax[1, 2].add_artist(
             AnchoredText('$\\mu = $' + str(round(mu_median_z, 2)) + '\n$\\sigma = $' + str(round(sigma_median_z, 2)),
                          loc="upper right"))
-
+        plt.suptitle(self.data_dir)
         plt.tight_layout()
         plt.show()
