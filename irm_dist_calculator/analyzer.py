@@ -183,13 +183,13 @@ class Analyzer:
         ax121.tick_params(axis='y', labelcolor="r")
 
         ax[1, 0].add_artist(
-            AnchoredText('$\\mu = $' + str(round(mu_median_x, 2)) + '\n$\\sigma = $' + str(round(sigma_median_x, 2)),
+            AnchoredText('$\\mu = $' + str(round(mu_median_x, 2)) + ' mm\n$\\sigma = $' + str(round(sigma_median_x, 2)) + ' mm',
                          loc="upper right"))
         ax[1, 1].add_artist(
-            AnchoredText('$\\mu = $' + str(round(mu_median_y, 2)) + '\n$\\sigma = $' + str(round(sigma_median_y, 2)),
+            AnchoredText('$\\mu = $' + str(round(mu_median_y, 2)) + ' mm\n$\\sigma = $' + str(round(sigma_median_y, 2)) + ' mm',
                          loc="upper right"))
         ax[1, 2].add_artist(
-            AnchoredText('$\\mu = $' + str(round(mu_median_z, 2)) + '\n$\\sigma = $' + str(round(sigma_median_z, 2)),
+            AnchoredText('$\\mu = $' + str(round(mu_median_z, 2)) + ' mm\n$\\sigma = $' + str(round(sigma_median_z, 2)) + ' mm',
                          loc="upper right"))
         plt.suptitle(self.data_dir)
         plt.tight_layout()
