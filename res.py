@@ -1,6 +1,6 @@
 from irm_dist_calculator import analyzer as a
 
-name = "3DT2_coreg"
+name = "T1Spir_30slices_coreg"
 d = "../data/" + name + "/"
 im = a.Analyzer(dir_tofile=d,
                 file_source="realGrid_" + name + ".ply",
@@ -9,4 +9,6 @@ im = a.Analyzer(dir_tofile=d,
                 scope=2e-3)
 im.load_results(d + name + "_median_nodes_real_grid.ply",
                 d + name + "_mean_nodes_real_grid.ply")
-im.display_results()
+im.compute_results()
+im.prepare_display()
+im.save_results(name)

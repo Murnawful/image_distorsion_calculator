@@ -19,6 +19,8 @@ class Analyzer:
     points_vertex = None
     data_dir = None
     scope_radius = None
+    diff_mean = None
+    diff_median = None
 
     points_close_to_vertices = []
     points_mean_nodes_real_grid = []
@@ -82,93 +84,99 @@ class Analyzer:
         o3d.io.write_point_cloud(self.data_dir + name + "_mean_nodes_real_grid.ply", points_mean_nodes_real_grid_pcd)
         o3d.io.write_point_cloud(self.data_dir + name + "_median_nodes_real_grid.ply", points_median_nodes_real_grid_pcd)
 
-    def display_results(self):
-        diff_mean = []
-        diff_median = []
+    def compute_results(self):
+        self.diff_mean = []
+        self.diff_median = []
         for i in range(len(self.points_vertex)):
             if (self.points_mean_nodes_real_grid[i, :] != np.array([0, 0, 0])).all():
-                diff_mean.append((self.points_vertex[i, :] - self.points_mean_nodes_real_grid[i, :]) * 1000)
+                self.diff_mean.append((self.points_vertex[i, :] - self.points_mean_nodes_real_grid[i, :]) * 1000)
             if (self.points_median_nodes_real_grid[i, :] != np.array([0, 0, 0])).all():
-                diff_median.append((self.points_vertex[i, :] - self.points_median_nodes_real_grid[i, :]) * 1000)
-        diff_median = np.array(diff_median)
-        diff_mean = np.array(diff_mean)
+                self.diff_median.append((self.points_vertex[i, :] - self.points_median_nodes_real_grid[i, :]) * 1000)
+        self.diff_median = np.array(self.diff_median)
+        self.diff_mean = np.array(self.diff_mean)
 
-        fig, ax = plt.subplots(2, 3)
+    def save_results(self, name):
+        np.save(self.data_dir + name + "_diff_mean", self.diff_mean)
+        np.save(self.data_dir + name + "_diff_median", self.diff_median)
+        plt.savefig(self.data_dir + name + "_analysis.png", dpi=500)
+
+    def prepare_display(self):
+        fig, ax = plt.subplots(2, 3, figsize=(20, 10))
         bin_number = 70
-        _, bins_mean_x, _ = ax[0, 0].hist(diff_mean[:, 0], bins=bin_number, color='b')
+        _, bins_mean_x, _ = ax[0, 0].hist(self.diff_mean[:, 0], bins=bin_number, color='b')
         ax[0, 0].set_xlabel("Deviation [mm]")
         ax[0, 0].set_title("Mean deviation along $x$")
         ax[0, 0].grid(b=True, which='both')
         ax[0, 0].minorticks_on()
         ax[0, 0].tick_params(labelcolor='b')
-        _, bins_mean_y, _ = ax[0, 1].hist(diff_mean[:, 1], bins=bin_number, color='b')
+        _, bins_mean_y, _ = ax[0, 1].hist(self.diff_mean[:, 1], bins=bin_number, color='b')
         ax[0, 1].set_xlabel("Deviation [mm]")
         ax[0, 1].set_title("Mean deviation along $y$")
         ax[0, 1].grid(b=True, which='both')
         ax[0, 1].minorticks_on()
         ax[0, 1].tick_params(labelcolor='b')
-        _, bins_mean_z, _ = ax[0, 2].hist(diff_mean[:, 2], bins=bin_number, color='b')
+        _, bins_mean_z, _ = ax[0, 2].hist(self.diff_mean[:, 2], bins=bin_number, color='b')
         ax[0, 2].set_xlabel("Deviation [mm]")
         ax[0, 2].set_title("Mean deviation along $z$")
         ax[0, 2].grid(b=True, which='both')
         ax[0, 2].minorticks_on()
         ax[0, 2].tick_params(labelcolor='b')
-        _, bins_median_x, _ = ax[1, 0].hist(diff_median[:, 0], bins=bin_number, color='b')
+        _, bins_median_x, _ = ax[1, 0].hist(self.diff_median[:, 0], bins=bin_number, color='b')
         ax[1, 0].set_xlabel("Deviation [mm]")
         ax[1, 0].set_title("Median deviation along $x$")
         ax[1, 0].grid(b=True, which='both')
         ax[1, 0].minorticks_on()
         ax[1, 0].tick_params(labelcolor='b')
-        _, bins_median_y, _ = ax[1, 1].hist(diff_median[:, 1], bins=bin_number, color='b')
+        _, bins_median_y, _ = ax[1, 1].hist(self.diff_median[:, 1], bins=bin_number, color='b')
         ax[1, 1].set_xlabel("Deviation [mm]")
         ax[1, 1].set_title("Median deviation along $y$")
         ax[1, 1].grid(b=True, which='both')
         ax[1, 1].minorticks_on()
         ax[1, 1].tick_params(labelcolor='b')
-        _, bins_median_z, _ = ax[1, 2].hist(diff_median[:, 2], bins=bin_number, color='b')
+        _, bins_median_z, _ = ax[1, 2].hist(self.diff_median[:, 2], bins=bin_number, color='b')
         ax[1, 2].set_xlabel("Deviation [mm]")
         ax[1, 2].set_title("Median deviation along $z$")
         ax[1, 2].grid(b=True, which='both')
         ax[1, 2].minorticks_on()
         ax[1, 2].tick_params(labelcolor='b')
 
-        mu_mean_x, sigma_mean_x = sc.norm.fit(diff_mean[:, 0])
+        mu_mean_x, sigma_mean_x = sc.norm.fit(self.diff_mean[:, 0])
         gauss_mean_x = sc.norm.pdf(bins_mean_x, mu_mean_x, sigma_mean_x)
         ax001 = ax[0, 0].twinx()
         ax001.plot(bins_mean_x, gauss_mean_x, color="r")
         ax001.tick_params(axis='y', labelcolor="r")
-        mu_mean_y, sigma_mean_y = sc.norm.fit(diff_mean[:, 1])
+        mu_mean_y, sigma_mean_y = sc.norm.fit(self.diff_mean[:, 1])
         gauss_mean_y = sc.norm.pdf(bins_mean_y, mu_mean_y, sigma_mean_y)
         ax011 = ax[0, 1].twinx()
         ax011.plot(bins_mean_y, gauss_mean_y, color="r")
         ax011.tick_params(axis='y', labelcolor="r")
-        mu_mean_z, sigma_mean_z = sc.norm.fit(diff_mean[:, 2])
+        mu_mean_z, sigma_mean_z = sc.norm.fit(self.diff_mean[:, 2])
         gauss_mean_z = sc.norm.pdf(bins_mean_z, mu_mean_z, sigma_mean_x)
         ax021 = ax[0, 2].twinx()
         ax021.plot(bins_mean_z, gauss_mean_z, color="r")
         ax021.tick_params(axis='y', labelcolor="r")
 
         ax[0, 0].add_artist(
-            AnchoredText('$\\mu = $' + str(round(mu_mean_x, 2)) + '\n$\\sigma = $' + str(round(sigma_mean_x, 2)),
+            AnchoredText('$\\mu = $' + str(round(mu_mean_x, 2)) + ' mm\n$\\sigma = $' + str(round(sigma_mean_x, 2)) + " mm",
                          loc="upper right"))
         ax[0, 1].add_artist(
-            AnchoredText('$\\mu = $' + str(round(mu_mean_y, 2)) + '\n$\\sigma = $' + str(round(sigma_mean_y, 2)),
+            AnchoredText('$\\mu = $' + str(round(mu_mean_y, 2)) + ' mm\n$\\sigma = $' + str(round(sigma_mean_y, 2)) + " mm",
                          loc="upper right"))
         ax[0, 2].add_artist(
-            AnchoredText('$\\mu = $' + str(round(mu_mean_z, 2)) + '\n$\\sigma = $' + str(round(sigma_mean_z, 2)),
+            AnchoredText('$\\mu = $' + str(round(mu_mean_z, 2)) + ' mm\n$\\sigma = $' + str(round(sigma_mean_z, 2)) + " mm",
                          loc="upper right"))
 
-        mu_median_x, sigma_median_x = sc.norm.fit(diff_median[:, 0])
+        mu_median_x, sigma_median_x = sc.norm.fit(self.diff_median[:, 0])
         gauss_median_x = sc.norm.pdf(bins_median_x, mu_median_x, sigma_median_x)
         ax101 = ax[1, 0].twinx()
         ax101.plot(bins_median_x, gauss_median_x, color="r")
         ax101.tick_params(axis='y', labelcolor="r")
-        mu_median_y, sigma_median_y = sc.norm.fit(diff_median[:, 1])
+        mu_median_y, sigma_median_y = sc.norm.fit(self.diff_median[:, 1])
         gauss_median_y = sc.norm.pdf(bins_median_y, mu_median_y, sigma_median_y)
         ax111 = ax[1, 1].twinx()
         ax111.plot(bins_median_y, gauss_median_y, color="r")
         ax111.tick_params(axis='y', labelcolor="r")
-        mu_median_z, sigma_median_z = sc.norm.fit(diff_median[:, 2])
+        mu_median_z, sigma_median_z = sc.norm.fit(self.diff_median[:, 2])
         gauss_median_z = sc.norm.pdf(bins_median_z, mu_median_z, sigma_median_x)
         ax121 = ax[1, 2].twinx()
         ax121.plot(bins_median_z, gauss_median_z, color="r")
@@ -185,4 +193,7 @@ class Analyzer:
                          loc="upper right"))
         plt.suptitle(self.data_dir)
         plt.tight_layout()
+
+    def display_results(self):
+        self.prepare_display()
         plt.show()

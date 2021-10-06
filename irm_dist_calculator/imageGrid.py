@@ -59,13 +59,12 @@ class ImageGrid:
             else:
                 new_data[self.roi] = self.data[self.roi]
                 if self.imageIsMri:
-                    m = np.amax(new_data)
-                    new_data_copy = np.copy(new_data)
-                    new_data[self.roi] = (-1) * new_data_copy[self.roi] + m
+                    m = np.amax(new_data[self.roi])
+                    new_data[self.roi] = (-1) * new_data[self.roi] + m
 
-            self.data[np.where(new_data < self.hu_range[0])] = 0
-            self.data[np.where(new_data > self.hu_range[1])] = 0
-            self.data[np.where(self.data != 0)] = 1
+            self.data[new_data < self.hu_range[0]] = 0
+            self.data[new_data >= self.hu_range[1]] = 0
+            self.data[self.data != 0] = 1
 
             coor = np.where(self.data == 1)
             self.points = np.zeros((coor[0].shape[0], 3))
