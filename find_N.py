@@ -39,6 +39,7 @@ pcd.points = o3d.utility.Vector3dVector(points)
 all_inliers = []
 all_slopes = []
 all_intercept = []
+all_lines = []
 
 for i in range(8):
     line_fitting = pr3d.Line().fit(points, 2e-3, 1000)
@@ -51,16 +52,10 @@ for i in range(8):
     inliers_pcd.points = o3d.utility.Vector3dVector(inliers_points)
     all_inliers.append(inliers_pcd)
 
-all_slopes = np.array(all_slopes)
-all_intercept = np.array(all_intercept)
-
-all_lines = []
-
-for i in range(8):
     t = np.linspace(-1e-1, 2e-1, 1000)
-    x = all_slopes[i, 0] * t + all_intercept[i, 0]
-    y = all_slopes[i, 1] * t + all_intercept[i, 1]
-    z = all_slopes[i, 2] * t + all_intercept[i, 2]
+    x = all_slopes[i][0] * t + all_intercept[i][0]
+    y = all_slopes[i][1] * t + all_intercept[i][1]
+    z = all_slopes[i][2] * t + all_intercept[i][2]
 
     line_points = np.zeros((t.shape[0], 3))
     line_points[:, 0] = x
@@ -69,6 +64,9 @@ for i in range(8):
     line_pcd = o3d.geometry.PointCloud()
     line_pcd.points = o3d.utility.Vector3dVector(line_points)
     all_lines.append(line_pcd)
+
+all_slopes = np.array(all_slopes)
+all_intercept = np.array(all_intercept)
 
 pcd.paint_uniform_color([1, 0, 0])
 
