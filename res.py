@@ -1,6 +1,6 @@
 from irm_dist_calculator import analyzer as a
 
-name = "Protons_fiduc"
+name = "T1Spir_30slices_FOV_coreg"
 d = "../data/" + name + "/"
 im = a.Analyzer(dir_tofile=d,
                 file_source="realGrid_" + name + ".ply",

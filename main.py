@@ -9,13 +9,13 @@ from irm_dist_calculator import imageGrid as im
 # (0.135, 0.135, 0.08)  # 3DT1_160slices_fiduc
 # (0.109, 0.1095, 0.03)  # 3DT2_coreg
 # (0.134, 0.134, 0.184)  # Protons_fiduc
-# (0.105, 0.105, 0.202)  # T1Spir_30slices_coreg
+# (0.105, 0.105, 0.03)  # T1Spir_30slices_coreg
 # (0.105, 0.105, 0.202)  # T1Spir_30slices_FOV_coreg
-grid = ref.ReferenceGrid(center=(0.134, 0.134, 0.184))
+grid = ref.ReferenceGrid(center=(0.105, 0.105, 0.03))
 grid.build()
 grid.convert()
 
-name = "Protons_fiduc"
+name = "T1Spir_30slices_FOV_coreg"
 
 ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
 
@@ -29,8 +29,8 @@ ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=
 # roi = ((177, 148, 10), (300, 318, 40))  # Protons_fiduc
 # roi = ((281, 213, 0), (505, 545, 28))  # T1Spir_30slices_coreg
 # roi = ((306, 235, 0), (560, 598, 28))  # T1Spir_30slices_FOV_coreg
-roi = ((177, 148, 10), (300, 318, 40))
-source = im.ImageGrid("../../im_DICOM/complete_IRM_CBCT/" + name + "/", 115, range_hu=(300, 10000), is_mri=True,
+roi = ((306, 235, 0), (560, 598, 29))
+source = im.ImageGrid("../../im_DICOM/complete_IRM_CBCT/" + name + "/", 29, range_hu=(150, 500), is_mri=True,
                       image_roi=roi)
 
 # (100, 5000)  # CBCT_wo_H2O
