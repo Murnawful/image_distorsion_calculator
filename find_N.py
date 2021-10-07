@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 import pydicom as pdcm
 import open3d as o3d
@@ -28,27 +27,6 @@ data[data < 100] = 0
 data[data != 0] = 1
 
 data[:, :, 50:210] = 0
-
-fig = plt.figure(figsize=(10, 7))
-ax = plt.axes()
-im = plt.imshow(data[0, :, :], animated=True, cmap='bone')
-plt.colorbar(shrink=0.75)
-plt.tight_layout()
-
-
-def init():
-    ds = pdcm.dcmread(path + "IMG0000000010.dcm")
-    im.set_data(ds.pixel_array)
-    return im,
-
-
-# animation function.  This is called sequentially
-def animate(i):
-    im.set_array(data[i, :, :])
-    return im,
-
-
-# anim = animation.FuncAnimation(fig, animate, init_func=init, frames=slice_number, interval=100, blit=True)
 
 coor = np.where(data != 0)
 points = np.zeros((coor[0].shape[0], 3))
@@ -107,5 +85,3 @@ o3d.visualization.draw_geometries([pcd,
                                    all_lines[7],
                                    ref_frame])
 
-# plt.show()
-# plt.savefig("slice230.png", dpi=500, transparent=True)
