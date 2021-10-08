@@ -58,5 +58,3 @@ analyser = a.Analyzer(dir_tofile="../data/" + name + "/",
                       scope=3e-3)
 analyser.launch_analysis()
 analyser.save_analysis(name)
-
-#test
