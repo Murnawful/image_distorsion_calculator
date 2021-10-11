@@ -1,1 +1,1 @@
-__all__ = ["analyzer", "referenceGrid", "imageGrid"]
+__all__ = ["analyzer", "referenceGrid", "imageGrid", "referenceFiducials"]

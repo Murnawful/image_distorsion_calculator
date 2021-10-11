@@ -25,7 +25,6 @@ for i in range(slice_number):
     a = ds.pixel_array
     data.append(a)
 data = np.array(data)
-print(data.shape)
 
 spacing_x = ds.PixelSpacing[0] * 1e-3
 spacing_y = ds.PixelSpacing[1] * 1e-3
@@ -39,9 +38,6 @@ data[:, :, r:data.shape[1] - r] = 0
 data[:, :45, :] = 0
 data[:45, :, :] = 0
 
-plt.imshow(data[int(data.shape[0] / 2), :, :])
-plt.show()
-
 coor = np.where(data != 0)
 points = np.zeros((coor[0].shape[0], 3))
 points[:, 0] = coor[2] * spacing_x
@@ -50,70 +46,45 @@ points[:, 2] = coor[0] * spacing_z
 pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector(points)
 
-max_x = np.amax(points[:, 0])
-min_x = np.amin(points[:, 0])
-max_y = np.amax(points[:, 1])
-min_y = np.amin(points[:, 1])
-max_z = np.amax(points[:, 2])
-min_z = np.amin(points[:, 2])
+offset_x = 5e-2
+offset_y = 6e-2
+offset_z = 0
 
-all_inliers = []
-all_slopes = []
-all_intercept = []
-all_lines = []
-fiducial1 = []
-fiducial2 = []
+t = np.linspace(0, 120e-3, 10000)
+x = np.zeros(t.shape) + offset_x
+y = np.zeros(t.shape) + offset_y
+z = np.copy(t) + offset_z
 
-for i in range(8):
-    line_fitting = pr3d.Line().fit(points, 2e-3, 1000)
-    all_slopes.append(line_fitting[0])
-    all_intercept.append(line_fitting[1])
-    inliers_index = line_fitting[2]
-    inliers_points = points[inliers_index, :]
-    points = np.delete(points, inliers_index, axis=0)
-    inliers_pcd = o3d.geometry.PointCloud()
-    inliers_pcd.points = o3d.utility.Vector3dVector(inliers_points)
-    all_inliers.append(inliers_pcd)
+x1 = np.zeros(t.shape) + offset_x
+y1 = np.ones(t.shape) * 120e-3 + offset_y
+z1 = np.copy(t) + offset_z
 
-    t = np.linspace(-1e-1, 2e-1, 1000)
-    x = all_slopes[i][0] * t + all_intercept[i][0]
-    y = all_slopes[i][1] * t + all_intercept[i][1]
-    z = all_slopes[i][2] * t + all_intercept[i][2]
+x2 = np.zeros(t.shape) + offset_x
+y2 = (-1) * np.copy(t) + 2 * 60e-3 + offset_y
+z2 = np.copy(t) + offset_z
 
-    line_points = np.zeros((t.shape[0], 3))
-    line_points[:, 0] = x
-    line_points[:, 1] = y
-    line_points[:, 2] = z
+x_line = np.concatenate((x, x1, x2))
+y_line = np.concatenate((y, y1, y2))
+z_line = np.concatenate((z, z1, z2))
 
-    line_points = line_points[line_points[:, 1] < max_y]
-    line_points = line_points[line_points[:, 1] > min_y]
-    line_points = line_points[line_points[:, 2] < max_z]
-    line_points = line_points[line_points[:, 2] > min_z]
+line_points1 = np.zeros((x_line.shape[0], 3))
+line_points1[:, 0] = x_line
+line_points1[:, 1] = y_line
+line_points1[:, 2] = z_line
 
-    line_pcd = o3d.geometry.PointCloud()
-    line_pcd.points = o3d.utility.Vector3dVector(line_points)
+line_points2 = np.zeros((x_line.shape[0], 3))
+line_points2[:, 0] = x_line + 190e-3
+line_points2[:, 1] = y_line
+line_points2[:, 2] = z_line
 
-    if abs(line_points[0, 0] - max_x) > abs(line_points[0, 0] - min_x):
-        fiducial1.append(line_pcd)
-    else:
-        fiducial2.append(line_pcd)
-    all_lines.append(line_pcd)
+pcd_fiducials_L = o3d.geometry.PointCloud()
+pcd_fiducials_L.points = o3d.utility.Vector3dVector(line_points1)
+pcd_fiducials_R = o3d.geometry.PointCloud()
+pcd_fiducials_R.points = o3d.utility.Vector3dVector(line_points2)
 
-all_slopes = np.array(all_slopes)
-all_intercept = np.array(all_intercept)
-fiducial1 = np.array(fiducial1)
-fiducial2 = np.array(fiducial2)
-
-print(fiducial1.shape)
-print(fiducial2.shape)
-
-pcd.paint_uniform_color([1, 0, 0])
+pcd_fiducials_R.paint_uniform_color([1, 0, 0])
+pcd_fiducials_L.paint_uniform_color([0, 0, 1])
 
 ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
 
-o3d.visualization.draw_geometries([pcd,
-                                   fiducial1[0],
-                                   fiducial1[1],
-                                   fiducial1[2],
-                                   fiducial1[3],
-                                   ref_frame])
+o3d.visualization.draw_geometries([pcd, ref_frame, pcd_fiducials_R, pcd_fiducials_L])
