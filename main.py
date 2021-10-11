@@ -1,9 +1,65 @@
 import open3d as o3d
+import numpy as np
+import pydicom as pdcm
 from irm_dist_calculator import analyzer as a
 from irm_dist_calculator import referenceGrid as ref
 from irm_dist_calculator import imageGrid as im
+from irm_dist_calculator import referenceFiducials as rFi
 
-# (0.12, 0.115, 0.095)  # CBCT_wo_H2O
+path = "../../im_DICOM/complete_IRM_CBCT/3DT1_160slices_fiduc/"
+slice_number = 160
+
+data = []
+for i in range(slice_number):
+    if i < 10:
+        name = path + "IMG000000000" + str(i) + ".dcm"
+    elif i < 100:
+        name = path + "IMG00000000" + str(i) + ".dcm"
+    else:
+        name = path + "IMG0000000" + str(i) + ".dcm"
+    ds = pdcm.dcmread(name)
+    a = ds.pixel_array
+    data.append(a)
+data = np.array(data)
+
+spacing_x = ds.PixelSpacing[0] * 1e-3
+spacing_y = ds.PixelSpacing[1] * 1e-3
+spacing_z = ds.SliceThickness * 1e-3
+
+data[data < 100] = 0
+data[data != 0] = 1
+
+r = 50
+data[:, :, r:data.shape[1] - r] = 0
+data[:, :45, :] = 0
+data[:45, :, :] = 0
+
+coor = np.where(data != 0)
+points = np.zeros((coor[0].shape[0], 3))
+points[:, 0] = coor[2] * spacing_x
+points[:, 1] = coor[1] * spacing_y
+points[:, 2] = coor[0] * spacing_z
+pcd = o3d.geometry.PointCloud()
+pcd.points = o3d.utility.Vector3dVector(points)
+
+fiduc = rFi.ReferenceFiducials((4e-2, 6.9e-2, 5e-2))
+fiduc.build()
+fiduc.convert()
+
+fiduc.register(pcd, "L", 1e-2, 1e-9)
+fiduc.register(pcd, "R", 1e-2, 1e-9)
+
+print(fiduc.check_parallelism(1e-4))
+
+fiduc.pcd_fiducial_L.paint_uniform_color([1, 0, 0])
+fiduc.pcd_fiducial_R.paint_uniform_color([0, 0, 1])
+
+ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
+# o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, ref_frame, pcd])
+
+################ Node deviation analysis ################
+
+"""# (0.12, 0.115, 0.095)  # CBCT_wo_H2O
 # (0.135, 0.135, 0.06)  # 3DT1_115slices_coreg
 # (0.135, 0.135, 0.06)  # 3DT1_115slices_fiduc
 # (0.135, 0.135, 0.08)  # 3DT1_160slices_fiduc
@@ -57,4 +113,4 @@ analyser = a.Analyzer(dir_tofile="../data/" + name + "/",
                       file_registered="registeredGrid_" + name + "_full.ply",
                       scope=3e-3)
 analyser.launch_analysis()
-analyser.save_analysis(name)
+analyser.save_analysis(name)"""
