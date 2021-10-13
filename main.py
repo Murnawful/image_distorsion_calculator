@@ -29,6 +29,15 @@ spacing_z = ds.SliceThickness * 1e-3
 data[data < 100] = 0
 data[data != 0] = 1
 
+coor = np.where(data != 0)
+points = np.zeros((coor[0].shape[0], 3))
+points[:, 0] = coor[2] * spacing_x
+points[:, 1] = coor[1] * spacing_y
+points[:, 2] = coor[0] * spacing_z
+pcd_full = o3d.geometry.PointCloud()
+pcd_full.points = o3d.utility.Vector3dVector(points)
+# pcd_full.paint_uniform_color([0, 1, 0])
+
 r = 50
 data[:, :, r:data.shape[1] - r] = 0
 data[:, :45, :] = 0
@@ -51,11 +60,18 @@ fiduc.register(pcd, "R", 1e-2, 1e-9)
 
 print(fiduc.check_parallelism(1e-4))
 
+ori = fiduc.define_stereotactic_space()
+ori1 = fiduc.define_stereotactic_space()
+for i in range(len(ori)):
+    ori1[i] += .1
+print(ori)
+
 fiduc.pcd_fiducial_L.paint_uniform_color([1, 0, 0])
 fiduc.pcd_fiducial_R.paint_uniform_color([0, 0, 1])
 
-ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
-# o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, ref_frame, pcd])
+ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori)
+ref_frame1 = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori1)
+o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, ref_frame, pcd_full, ref_frame1])
 
 ################ Node deviation analysis ################
 

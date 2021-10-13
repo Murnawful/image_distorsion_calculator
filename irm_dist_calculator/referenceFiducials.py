@@ -140,4 +140,10 @@ class ReferenceFiducials:
             return False
 
     def define_stereotactic_space(self):
-        pass
+        lower_z = max(np.amax(self.data_fiducial_R[:, 2]), np.amax(self.data_fiducial_L[:, 2])) + 40e-3
+        lower_x = min(np.amin(self.data_fiducial_R[:, 0]), np.amin(self.data_fiducial_L[:, 0]))
+        lower_y = min(np.amin(self.data_fiducial_R[:, 1]), np.amin(self.data_fiducial_L[:, 1]))
+        origin_x = lower_x - 5e-3
+        origin_y = lower_y - 40e-3
+        origin_z = lower_z - 200e-3
+        return [origin_x, origin_y, origin_z]
