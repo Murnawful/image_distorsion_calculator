@@ -1,12 +1,12 @@
-import open3d as o3d
-import numpy as np
-import pydicom as pdcm
-from irm_dist_calculator import analyzer as a
-from irm_dist_calculator import referenceGrid as ref
-from irm_dist_calculator import imageGrid as im
-from irm_dist_calculator import referenceFiducials as rFi
+from gui import DistCalGUI
 
-path = "../../im_DICOM/complete_IRM_CBCT/3DT1_160slices_fiduc/"
+gui = DistCalGUI.GUI()
+gui.mainloop()
+
+
+################ Stereotactic space reconstruction ################
+
+"""path = "../../im_DICOM/complete_IRM_CBCT/3DT1_160slices_fiduc/"
 slice_number = 160
 
 data = []
@@ -71,7 +71,7 @@ fiduc.pcd_fiducial_R.paint_uniform_color([0, 0, 1])
 
 ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori)
 ref_frame1 = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori1)
-o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, ref_frame, pcd_full, ref_frame1])
+o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, ref_frame, pcd_full, ref_frame1])"""
 
 ################ Node deviation analysis ################
 
