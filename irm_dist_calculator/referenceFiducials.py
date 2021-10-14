@@ -17,6 +17,7 @@ class ReferenceFiducials:
     pcd_fiducial_R = None
     pcd_fiducial_L = None
     pose_graph = None
+    mean_vector = None
 
     def __init__(self, offset):
         self.offset_x = offset[0]
@@ -130,16 +131,18 @@ class ReferenceFiducials:
         normal_L = plane_L[:3]
         normal_R = plane_R[:3]
 
+        self.mean_vector = (normal_R + normal_L) / 2
+
         scalar = np.dot(normal_L, normal_R)
 
-        print("Angle between fiducials: " + str(np.arccos(scalar)) + " radians")
+        print("Angle between fiducials: " + str(np.round(180 * np.arccos(scalar) / np.pi, 2)) + " degrees")
 
         if abs(scalar - 1) < tol:
             return True
         else:
             return False
 
-    def define_stereotactic_space(self):
+    def define_stereotactic_space(self, size=0.05):
         lower_z = max(np.amax(self.data_fiducial_R[:, 2]), np.amax(self.data_fiducial_L[:, 2])) + 15e-3
         lower_x = max(np.amax(self.data_fiducial_R[:, 0]), np.amax(self.data_fiducial_L[:, 0]))
         lower_y = max(np.amax(self.data_fiducial_R[:, 1]), np.amax(self.data_fiducial_L[:, 1]))
@@ -152,8 +155,8 @@ class ReferenceFiducials:
         for i in range(len(ori)):
             ori1[i] += .1
 
-        ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori)
-        ref_frame1 = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori1)
+        ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=size, origin=ori)
+        ref_frame1 = o3d.geometry.TriangleMesh.create_coordinate_frame(size=size, origin=ori1)
 
         R = ref_frame.get_rotation_matrix_from_xyz((0, 0, np.pi))
         ref_frame.rotate(R, center=ori)

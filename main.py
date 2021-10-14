@@ -55,12 +55,12 @@ points[:, 2] = coor[0] * spacing_z
 pcd = o3d.geometry.PointCloud()
 pcd.points = o3d.utility.Vector3dVector(points)
 
-fiduc = rFi.ReferenceFiducials((4e-2, 6.9e-2, 5e-2))
+fiduc = rFi.ReferenceFiducials((4e-2, 6.9e-2, 5.4e-2))
 fiduc.build()
 fiduc.convert()
 
-fiduc.register(pcd, "L", 1e-2, 1e-9)
-fiduc.register(pcd, "R", 1e-2, 1e-9)
+fiduc.register(pcd, "L", 1e-3, 1e-1)
+fiduc.register(pcd, "R", 1e-1, 1e-6)
 
 fiduc.check_parallelism(1e-4)
 
