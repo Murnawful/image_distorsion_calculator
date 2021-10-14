@@ -1,1 +1,1 @@
-__all__ = ["DistCalGUI"]
+__all__ = ["DistCalGUI", "file_manager"]

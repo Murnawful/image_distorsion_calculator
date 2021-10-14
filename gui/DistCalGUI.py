@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-import file_manager
+from gui import file_manager
 
 
 class GUI(tk.Tk):
@@ -12,7 +12,10 @@ class GUI(tk.Tk):
 
         self.geometry("1500x800")
 
-        file_manager.FileManager()
+        file_manager_frame = file_manager.FileManager(self)
+        file_manager_frame.grid(row=0,
+                                column=0,
+                                sticky='w')
 
         self.bind("<Control-q>", self.close_app)
 

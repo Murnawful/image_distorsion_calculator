@@ -1,16 +1,16 @@
-"""from gui import DistCalGUI
-
-gui = DistCalGUI.GUI()
-gui.mainloop()"""
+from gui import DistCalGUI
 
 import open3d as o3d
 import pydicom as pdcm
 import numpy as np
 import irm_dist_calculator.referenceFiducials as rFi
 
+gui = DistCalGUI.GUI()
+gui.mainloop()
+
 ################ Stereotactic space reconstruction ################
 
-path = "../../im_DICOM/complete_IRM_CBCT/3DT1_160slices_fiduc/"
+"""path = "../../im_DICOM/complete_IRM_CBCT/3DT1_160slices_fiduc/"
 slice_number = 160
 
 data = []
@@ -69,7 +69,7 @@ ori, ori1 = fiduc.define_stereotactic_space()
 fiduc.pcd_fiducial_L.paint_uniform_color([1, 0, 0])
 fiduc.pcd_fiducial_R.paint_uniform_color([0, 0, 1])
 
-o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, pcd_full, ori, ori1])
+o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, pcd_full, ori, ori1])"""
 
 ################ Node deviation analysis ################
 
