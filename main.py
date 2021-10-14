@@ -1,12 +1,16 @@
-from gui import DistCalGUI
+"""from gui import DistCalGUI
 
 gui = DistCalGUI.GUI()
-gui.mainloop()
+gui.mainloop()"""
 
+import open3d as o3d
+import pydicom as pdcm
+import numpy as np
+import irm_dist_calculator.referenceFiducials as rFi
 
 ################ Stereotactic space reconstruction ################
 
-"""path = "../../im_DICOM/complete_IRM_CBCT/3DT1_160slices_fiduc/"
+path = "../../im_DICOM/complete_IRM_CBCT/3DT1_160slices_fiduc/"
 slice_number = 160
 
 data = []
@@ -58,20 +62,14 @@ fiduc.convert()
 fiduc.register(pcd, "L", 1e-2, 1e-9)
 fiduc.register(pcd, "R", 1e-2, 1e-9)
 
-print(fiduc.check_parallelism(1e-4))
+fiduc.check_parallelism(1e-4)
 
-ori = fiduc.define_stereotactic_space()
-ori1 = fiduc.define_stereotactic_space()
-for i in range(len(ori)):
-    ori1[i] += .1
-print(ori)
+ori, ori1 = fiduc.define_stereotactic_space()
 
 fiduc.pcd_fiducial_L.paint_uniform_color([1, 0, 0])
 fiduc.pcd_fiducial_R.paint_uniform_color([0, 0, 1])
 
-ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori)
-ref_frame1 = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori1)
-o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, ref_frame, pcd_full, ref_frame1])"""
+o3d.visualization.draw_geometries([fiduc.pcd_fiducial_R, fiduc.pcd_fiducial_L, pcd_full, ori, ori1])
 
 ################ Node deviation analysis ################
 

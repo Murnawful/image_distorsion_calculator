@@ -132,7 +132,7 @@ class ReferenceFiducials:
 
         scalar = np.dot(normal_L, normal_R)
 
-        print("The scalar product of both normal vectors to planes is " + str(scalar))
+        print("Angle between fiducials: " + str(np.arccos(scalar)) + " radians")
 
         if abs(scalar - 1) < tol:
             return True
@@ -140,10 +140,22 @@ class ReferenceFiducials:
             return False
 
     def define_stereotactic_space(self):
-        lower_z = max(np.amax(self.data_fiducial_R[:, 2]), np.amax(self.data_fiducial_L[:, 2])) + 40e-3
-        lower_x = min(np.amin(self.data_fiducial_R[:, 0]), np.amin(self.data_fiducial_L[:, 0]))
-        lower_y = min(np.amin(self.data_fiducial_R[:, 1]), np.amin(self.data_fiducial_L[:, 1]))
-        origin_x = lower_x - 5e-3
-        origin_y = lower_y - 40e-3
+        lower_z = max(np.amax(self.data_fiducial_R[:, 2]), np.amax(self.data_fiducial_L[:, 2])) + 15e-3
+        lower_x = max(np.amax(self.data_fiducial_R[:, 0]), np.amax(self.data_fiducial_L[:, 0]))
+        lower_y = max(np.amax(self.data_fiducial_R[:, 1]), np.amax(self.data_fiducial_L[:, 1]))
+        origin_x = lower_x + 5e-3
+        origin_y = lower_y + 40e-3
         origin_z = lower_z - 200e-3
-        return [origin_x, origin_y, origin_z]
+
+        ori = [origin_x, origin_y, origin_z]
+        ori1 = np.copy(ori)
+        for i in range(len(ori)):
+            ori1[i] += .1
+
+        ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori)
+        ref_frame1 = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=ori1)
+
+        R = ref_frame.get_rotation_matrix_from_xyz((0, 0, np.pi))
+        ref_frame.rotate(R, center=ori)
+        ref_frame1.rotate(R, center=ori)
+        return ref_frame, ref_frame1
