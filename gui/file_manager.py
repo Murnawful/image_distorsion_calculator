@@ -1,40 +1,45 @@
 import tkinter as tk
 from tkinter import ttk
 import tkinter.filedialog as fd
+import os
+from tkinter.messagebox import showerror
+import numpy as np
 
 
 class FileManager(tk.Frame):
+    filenames = []
+    files_directory = None
+    selected_files = None
+
     def __init__(self, container):
         super().__init__(container)
-
-        self.filenames = []
 
         open_button = ttk.Button(self,
                                  text='Open DICOM files',
                                  command=self.select_file)
-        open_button.grid(column=0, row=2, sticky='w', padx=10, pady=10)
+        open_button.grid(column=0, row=2, sticky='w', padx=0, pady=0)
         add_button = ttk.Button(self,
                                 text='Add DICOM files',
                                 command=self.add_file)
-        add_button.grid(column=1, row=2, sticky='w', padx=10, pady=10)
+        add_button.grid(column=1, row=2, sticky='w', padx=0, pady=0)
         delete_button = ttk.Button(self,
                                    text='Delete DICOM files',
-                                   command=self.add_file)
-        delete_button.grid(column=2, row=2, sticky='w', padx=10, pady=10)
+                                   command=self.delete_file)
+        delete_button.grid(column=2, row=2, sticky='w', padx=0, pady=0)
 
         self.listbox = tk.Listbox(self,
                                   listvariable=self.filenames,
                                   height=6,
-                                  width=80,
+                                  width=50,
                                   selectmode='extended')
-        self.listbox.grid(columnspan=2,
+        self.listbox.grid(columnspan=4,
                           row=0,
                           sticky='nwes')
         scrollbar_y = ttk.Scrollbar(self,
                                     orient='vertical',
                                     command=self.listbox.yview)
         self.listbox['yscrollcommand'] = scrollbar_y.set
-        scrollbar_y.grid(column=3,
+        scrollbar_y.grid(column=4,
                          row=0,
                          sticky='ns')
         scrollbar_x = ttk.Scrollbar(self,
@@ -44,6 +49,7 @@ class FileManager(tk.Frame):
         scrollbar_x.grid(columnspan=3,
                          row=1,
                          sticky='ew')
+        self.listbox.bind('<<ListboxSelect>>', self.select_files_in_frame)
 
     def select_file(self):
         filetypes = (
@@ -52,9 +58,9 @@ class FileManager(tk.Frame):
         )
 
         self.filenames = fd.askopenfiles(filetypes=filetypes)
-
+        self.files_directory = os.path.split(self.filenames[0].name)[0]
         for f in self.filenames:
-            self.listbox.insert(tk.END, f.name)
+            self.listbox.insert(tk.END, f.name.replace(self.files_directory, ''))
 
     def add_file(self):
         filetypes = (
@@ -62,10 +68,19 @@ class FileManager(tk.Frame):
             ('All files', '*.*')
         )
 
-        new_files = fd.askopenfiles(filetypes=filetypes)
+        new_files = fd.askopenfiles(initialdir=self.files_directory, filetypes=filetypes)
         for nf in new_files:
             self.filenames.append(nf)
-            self.listbox.insert(tk.END, nf.name)
+            self.listbox.insert(tk.END, nf.name.replace(self.files_directory, ''))
 
     def delete_file(self):
-        pass
+        try:
+            for index in self.selected_files[::-1]:
+                self.listbox.delete(index)
+                self.filenames.pop(index)
+        except TypeError:
+            showerror(title='Error',
+                      message="No file was selected")
+
+    def select_files_in_frame(self, event):
+        self.selected_files = self.listbox.curselection()

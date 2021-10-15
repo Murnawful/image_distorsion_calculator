@@ -10,7 +10,12 @@ class GUI(tk.Tk):
 
         self.filenames = None
 
-        self.geometry("1500x800")
+        # get the screen dimension
+        window_width = self.winfo_screenwidth()
+        window_height = self.winfo_screenheight()
+
+        # set the position of the window to the center of the screen
+        self.geometry(f'{window_width}x{window_height}')
 
         file_manager_frame = file_manager.FileManager(self)
         file_manager_frame.grid(row=0,
