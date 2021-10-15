@@ -3,7 +3,6 @@ from tkinter import ttk
 import tkinter.filedialog as fd
 import os
 from tkinter.messagebox import showerror
-import numpy as np
 
 
 class FileManager(tk.Frame):
@@ -32,7 +31,7 @@ class FileManager(tk.Frame):
                                   height=6,
                                   width=50,
                                   selectmode='extended')
-        self.listbox.grid(columnspan=4,
+        self.listbox.grid(columnspan=3,
                           row=0,
                           sticky='nwes')
         scrollbar_y = ttk.Scrollbar(self,
