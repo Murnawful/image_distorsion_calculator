@@ -1,1 +1,1 @@
-__all__ = ["DistCalGUI", "file_manager"]
+__all__ = ["mainwidow.py", "file_manager"]

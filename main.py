@@ -1,12 +1,19 @@
-from gui import DistCalGUI
+from gui import mainwidow
 
 import open3d as o3d
 import pydicom as pdcm
 import numpy as np
 import irm_dist_calculator.referenceFiducials as rFi
 
-gui = DistCalGUI.GUI()
-gui.mainloop()
+
+def main():
+    gui = mainwidow.GUI()
+    gui.mainloop()
+
+
+if __name__ == "__main__":
+    main()
+
 
 ################ Stereotactic space reconstruction ################
 
