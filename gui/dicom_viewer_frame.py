@@ -83,6 +83,7 @@ class DicomViewerFrame(Frame):
 
     def on_button_release(self, event):
         self.roi = self.canvas.bbox(self.selection)
+        showinfo(title="ROI", message=str(self.roi))
 
     def show_image(self, numpy_array, index):
         self.upper = int(self.parent.pcd_preparer.get_current_upper().get())
