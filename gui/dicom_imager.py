@@ -51,7 +51,7 @@ class DicomImager:
     def window_center(self, value):
         self._window_center = value
 
-    def get_image(self, index):
+    def get_image(self, index, upper, lower):
         # int32 true values (HU or brightness units)
         img = self.values[:, :, index]
 
@@ -62,12 +62,15 @@ class DicomImager:
         mask_1 = img > w_right
         mask_2 = np.invert(mask_0 + mask_1)
 
+        res1 = np.zeros(img.shape)
+        res1[img < upper] = 1
+        res1[img < lower] = 0
+
         # Cast to RGB image so that Tkinter can handle it
         res = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-        res[:, :, 0] = res[:, :, 1] = res[:, :, 2] = \
-            mask_0 * 0 + mask_1 * 255 + mask_2 * (255 * (img - w_left) / (w_right - w_left))
+        res[:, :, 0] = res[:, :, 1] = res[:, :, 2] = res1 * 255
 
         return res
 
-    def get_current_image(self):
-        return self.get_image(self.index)
+    def get_current_image(self, upper, lower):
+        return self.get_image(self.index, upper, lower), self.index

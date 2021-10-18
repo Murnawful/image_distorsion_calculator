@@ -15,7 +15,7 @@ class DicomViewerFrame(Frame):
         self.image = None
         self.photo = None
         self.canvas = None
-        self.imager = None
+        self.imager_axial = None
 
         self.status = None
         self.right_click_menu = None
@@ -23,13 +23,16 @@ class DicomViewerFrame(Frame):
         self.mouse_wheel_down = False
         self.last_mouse_pos = None
 
+        self.upper = 200
+        self.lower = 100
+
         self.init_ui()
 
     def init_ui(self):
 
         # Image canvas
-        self.canvas = Canvas(self.parent, bd=0, highlightthickness=0)
-        self.canvas.grid(row=0, rowspan=3, column=1, sticky="w")
+        self.canvas = Canvas(self, bd=0, highlightthickness=0)
+        self.canvas.grid(row=0, column=0, sticky="w")
         self.canvas.bind("<Button-3>", self.show_right_click_menu)  # <Button-3> is the right click event
         self.canvas.bind("<MouseWheel>", self.scroll_images)
         self.canvas.bind("<B2-Motion>", self.on_mouse_wheel_drag)
@@ -41,7 +44,7 @@ class DicomViewerFrame(Frame):
         self.right_click_menu = Menu(self.parent, tearoff=0)
         self.right_click_menu.add_command(label="Beep", command=self.bell)
 
-    def show_image(self, numpy_array):
+    def show_image(self, numpy_array, index):
         if numpy_array is None:
             return
 
@@ -50,6 +53,7 @@ class DicomViewerFrame(Frame):
         self.photo = PIL.ImageTk.PhotoImage(self.image)
         self.canvas.delete("IMG")
         self.canvas.create_image(0, 0, image=self.photo, anchor=NW, tags="IMG")
+        self.canvas.create_text(17, 6, fill="green", text="Slice " + str(index))
         self.canvas.configure(width=self.image.width, height=self.image.height)
 
         # We need to at least fit the entire image, but don't shrink if we don't have to
@@ -65,8 +69,9 @@ class DicomViewerFrame(Frame):
         self.right_click_menu.post(e.x_root, e.y_root)
 
     def scroll_images(self, e):
-        self.imager.index += int(e.delta/120)
-        self.show_image(self.imager.get_current_image())
+        self.imager_axial.index += int(e.delta / 120)
+        im, index = self.imager_axial.get_current_image(self.upper, self.lower)
+        self.show_image(im, index)
 
     def on_mouse_wheel_down(self, e):
         self.last_mouse_pos = (e.x, e.y)
@@ -81,13 +86,14 @@ class DicomViewerFrame(Frame):
             delta = (e.x - self.last_mouse_pos[0], e.y - self.last_mouse_pos[1])
             self.last_mouse_pos = (e.x, e.y)
 
-            self.imager.window_width += delta[0] * 5
-            self.imager.window_center += delta[1] * 5
+            self.imager_axial.window_width += delta[0] * 5
+            self.imager_axial.window_center += delta[1] * 5
 
-            self.show_image(self.imager.get_current_image())
+            im, index = self.imager_axial.get_current_image(self.upper, self.lower)
+            self.show_image(im, index)
 
     def callback(self):
         self.status.set("Not implemented yet!")
 
     def set_imager(self, im):
-        self.imager = im
+        self.imager_axial = im

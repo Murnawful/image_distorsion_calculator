@@ -35,10 +35,10 @@ class GUI(tk.Tk):
         self.file_manager_frame.grid(row=0, column=0, sticky='nw')
 
         load_dicom_button = ttk.Button(self, text='Load DICOM files', command=self.load_dicom_files)
-        load_dicom_button.grid(row=1, column=0, sticky='new')
+        load_dicom_button.grid(row=2, column=0, columnspan=2, sticky='new')
 
         self.dicom_viewer_frame = dvf.DicomViewerFrame(self)
-        self.dicom_viewer_frame.grid(row=0, rowspan=5, column=1, sticky='nsew')
+        self.dicom_viewer_frame.grid(row=0, column=2, rowspan=3, sticky='nsew')
         self.dicom_viewer_frame.init_ui()
 
         self.bind("<Control-q>", self.close_app)
@@ -47,22 +47,23 @@ class GUI(tk.Tk):
         self.quit()
 
     def load_dicom_files(self):
-        try:
-            self.filenames = self.file_manager_frame.filenames
-            self.working_directory = self.file_manager_frame.files_directory + "/"
+        # try:
+        self.filenames = self.file_manager_frame.filenames
+        self.working_directory = self.file_manager_frame.files_directory + "/"
 
-            self.dicom_datasets.clear()
-            for file in self.filenames:
-                self.dicom_datasets.append(pdcm.read_file(file.name))
+        self.dicom_datasets.clear()
+        for file in self.filenames:
+            self.dicom_datasets.append(pdcm.read_file(file.name))
 
-            self.sort_datasets()
+        self.sort_datasets()
 
-            self.imager = dicom_imager.DicomImager(self.dicom_datasets)
+        self.imager = dicom_imager.DicomImager(self.dicom_datasets)
 
-            self.dicom_viewer_frame.set_imager(self.imager)
-            self.dicom_viewer_frame.show_image(self.imager.get_current_image())
-        except self.file_manager_frame.filenames == []:
-            showerror(title='Error', message='No files present in the file manager')
+        self.dicom_viewer_frame.set_imager(self.imager)
+        im, index = self.imager.get_current_image(self.dicom_viewer_frame.upper, self.dicom_viewer_frame.lower)
+        self.dicom_viewer_frame.show_image(im, index)
+        # except TypeError:
+            # showerror(title='Error', message='No files present in the file manager')
 
     def sort_datasets(self):
         try:
