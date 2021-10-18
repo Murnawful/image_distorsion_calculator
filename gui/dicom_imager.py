@@ -21,7 +21,10 @@ class DicomImager:
         self.values = np.zeros(self.size, dtype='int32')
         for i, d in enumerate(datasets):
             # Also performs rescaling. 'unsafe' since it converts from float64 to int32
-            np.copyto(self.values[:, :, i], d.RescaleSlope * np.flipud(d.pixel_array) + d.RescaleIntercept, 'unsafe')
+            np.copyto(self.values[:, :, i], d.pixel_array, 'unsafe')
+
+        self.max_value = np.amax(self.values)
+        self.min_value = np.amin(self.values)
 
     @property
     def index(self):

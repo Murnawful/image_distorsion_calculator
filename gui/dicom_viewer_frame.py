@@ -1,7 +1,6 @@
-from tkinter.filedialog import askopenfilenames
-import pydicom as dicom
 import PIL.Image
 import PIL.ImageTk
+import numpy as np
 
 from gui.statusbar import *
 
@@ -23,12 +22,12 @@ class DicomViewerFrame(Frame):
         self.mouse_wheel_down = False
         self.last_mouse_pos = None
 
-        self.upper = 200
-        self.lower = 100
+        self.upper = 0
+        self.lower = 0
 
-        self.init_ui()
+        self.init_viewer_frame()
 
-    def init_ui(self):
+    def init_viewer_frame(self):
 
         # Image canvas
         self.canvas = Canvas(self, bd=0, highlightthickness=0)
@@ -45,6 +44,9 @@ class DicomViewerFrame(Frame):
         self.right_click_menu.add_command(label="Beep", command=self.bell)
 
     def show_image(self, numpy_array, index):
+        self.upper = int(self.parent.pcd_preparer.get_current_upper().get())
+        self.lower = int(self.parent.pcd_preparer.get_current_lower().get())
+
         if numpy_array is None:
             return
 
@@ -70,6 +72,10 @@ class DicomViewerFrame(Frame):
 
     def scroll_images(self, e):
         self.imager_axial.index += int(e.delta / 120)
+        im, index = self.imager_axial.get_current_image(self.upper, self.lower)
+        self.show_image(im, index)
+
+    def change_range(self):
         im, index = self.imager_axial.get_current_image(self.upper, self.lower)
         self.show_image(im, index)
 
