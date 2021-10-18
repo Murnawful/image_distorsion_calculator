@@ -4,6 +4,8 @@ import numpy as np
 
 from gui.statusbar import *
 
+from tkinter.messagebox import showinfo
+
 
 class DicomViewerFrame(Frame):
     def __init__(self, parent):
@@ -25,6 +27,12 @@ class DicomViewerFrame(Frame):
         self.upper = 0
         self.lower = 0
 
+        self.selection = None
+        self.start_x = None
+        self.start_y = None
+        self.end_x = self.end_y = 0
+        self.roi = None
+
         self.init_viewer_frame()
 
     def init_viewer_frame(self):
@@ -39,9 +47,42 @@ class DicomViewerFrame(Frame):
         self.canvas.bind("<ButtonRelease-2>", self.on_mouse_wheel_up)
         #  self.canvas.bind("<Configure>", self.resize)
 
+        # Status bar
+        self.status = StatusBar(self)
+        self.status.grid(row=3, column=0, sticky="w")
+
         # Right-click menu
         self.right_click_menu = Menu(self.parent, tearoff=0)
         self.right_click_menu.add_command(label="Beep", command=self.bell)
+        self.canvas.bind('<Motion>', self.motion)
+
+        self.canvas.bind("<B1-Motion>", self.on_move_press)
+        self.canvas.bind("<ButtonPress-1>", self.on_button_press)
+        self.canvas.bind("<ButtonRelease-1>", self.on_button_release)
+
+    def on_button_press(self, event):
+        self.canvas.delete(self.selection)
+
+        # save mouse drag start position
+        self.start_x = event.x
+        self.start_y = event.y
+
+        # create rectangle if not yet exist
+        #if not self.rect:
+        self.selection = self.canvas.create_rectangle(self.end_x, self.end_y, 1, 1, outline="green")
+
+    def on_move_press(self, event):
+        curX, curY = (event.x, event.y)
+        self.end_x = curX
+        self.end_y = curY
+
+        self.motion(event)
+
+        # expand rectangle as you drag the mouse
+        self.canvas.coords(self.selection, self.start_x, self.start_y, curX, curY)
+
+    def on_button_release(self, event):
+        self.roi = self.canvas.bbox(self.selection)
 
     def show_image(self, numpy_array, index):
         self.upper = int(self.parent.pcd_preparer.get_current_upper().get())
@@ -56,16 +97,20 @@ class DicomViewerFrame(Frame):
         self.canvas.delete("IMG")
         self.canvas.create_image(0, 0, image=self.photo, anchor=NW, tags="IMG")
         self.canvas.create_text(17, 6, fill="green", text="Slice " + str(index))
-        self.canvas.configure(width=self.image.width, height=self.image.height)
+
+        width = self.image.width
+        height = self.image.height
+
+        self.canvas.configure(width=width, height=height)
 
         # We need to at least fit the entire image, but don't shrink if we don't have to
-        width = max(self.parent.winfo_width(), self.image.width)
-        height = max(self.parent.winfo_height(), self.image.height + StatusBar.height)
+        width = max(self.parent.winfo_width(), width)
+        height = max(self.parent.winfo_height(), height + StatusBar.height)
 
         # Resize root window and prevent resizing smaller than the image
-        newsize = "{}x{}".format(width, height)
+        newsize = "{}x{}".format(width, height + StatusBar.height)
         self.parent.geometry(newsize)
-        self.parent.minsize(self.image.width, self.image.height + StatusBar.height)
+        self.parent.minsize(width, height)
 
     def show_right_click_menu(self, e):
         self.right_click_menu.post(e.x_root, e.y_root)
@@ -80,7 +125,7 @@ class DicomViewerFrame(Frame):
         self.show_image(im, index)
 
     def on_mouse_wheel_down(self, e):
-        self.last_mouse_pos = (e.x, e.y)
+        self.last_mouse_pos = (e.end_x, e.end_y)
         self.mouse_wheel_down = True
 
     def on_mouse_wheel_up(self, e):
@@ -89,8 +134,8 @@ class DicomViewerFrame(Frame):
 
     def on_mouse_wheel_drag(self, e):
         if self.mouse_wheel_down:
-            delta = (e.x - self.last_mouse_pos[0], e.y - self.last_mouse_pos[1])
-            self.last_mouse_pos = (e.x, e.y)
+            delta = (e.end_x - self.last_mouse_pos[0], e.end_y - self.last_mouse_pos[1])
+            self.last_mouse_pos = (e.end_x, e.end_y)
 
             self.imager_axial.window_width += delta[0] * 5
             self.imager_axial.window_center += delta[1] * 5
@@ -103,3 +148,7 @@ class DicomViewerFrame(Frame):
 
     def set_imager(self, im):
         self.imager_axial = im
+
+    def motion(self, event):
+        x, y = event.x, event.y
+        self.status.set('x = {}, y = {}'.format(x, y))

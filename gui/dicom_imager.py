@@ -58,13 +58,6 @@ class DicomImager:
         # int32 true values (HU or brightness units)
         img = self.values[:, :, index]
 
-        # Vectorized windowing using boolean masks
-        w_left = (self._window_center - self._window_width / 2)
-        w_right = (self._window_center + self._window_width / 2)
-        mask_0 = img < w_left
-        mask_1 = img > w_right
-        mask_2 = np.invert(mask_0 + mask_1)
-
         res1 = np.zeros(img.shape)
         res1[img < upper] = 1
         res1[img < lower] = 0

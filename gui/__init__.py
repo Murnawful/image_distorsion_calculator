@@ -1,1 +1,6 @@
-__all__ = ["mainwidow.py", "file_manager"]
+__all__ = ["mainwidow",
+           "file_manager",
+           "cloud_point_preparer",
+           "dicom_imager",
+           "dicom_viewer_frame",
+           "statusbar"]
