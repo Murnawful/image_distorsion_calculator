@@ -3,8 +3,11 @@ import numpy as np
 
 class DicomImager:
     def __init__(self, datasets):
+        self.values = None
+
         self.datasets = datasets
-        self._index = 0
+        self._index_axial = 0
+        self._index_sagittal = 0
         self._window_width = 1
         self._window_center = 0
 
@@ -27,16 +30,28 @@ class DicomImager:
         self.min_value = np.amin(self.values)
 
     @property
-    def index(self):
-        return self._index
+    def index_sagittal(self):
+        return self._index_sagittal
 
-    @index.setter
-    def index(self, value):
+    @index_sagittal.setter
+    def index_sagittal(self, value):
+
+        while value < 0:
+            value += self.size[0]
+
+        self._index_sagittal = value % self.size[0]
+
+    @property
+    def index_axial(self):
+        return self._index_axial
+
+    @index_axial.setter
+    def index_axial(self, value):
 
         while value < 0:
             value += self.size[2]
 
-        self._index = value % self.size[2]
+        self._index_axial = value % self.size[2]
 
     @property
     def window_width(self):
@@ -54,7 +69,21 @@ class DicomImager:
     def window_center(self, value):
         self._window_center = value
 
-    def get_image(self, index, upper, lower):
+    def get_sagittal_image(self, index, upper, lower):
+        # int32 true values (HU or brightness units)
+        img = self.values[index, :, :]
+
+        res1 = np.zeros(img.shape)
+        res1[img < upper] = 1
+        res1[img < lower] = 0
+
+        # Cast to RGB image so that Tkinter can handle it
+        res = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
+        res[:, :, 0] = res[:, :, 1] = res[:, :, 2] = res1 * 255
+
+        return res
+
+    def get_axial_image(self, index, upper, lower):
         # int32 true values (HU or brightness units)
         img = self.values[:, :, index]
 
@@ -68,5 +97,8 @@ class DicomImager:
 
         return res
 
-    def get_current_image(self, upper, lower):
-        return self.get_image(self.index, upper, lower), self.index
+    def get_current_sagittal_image(self, upper, lower):
+        return self.get_sagittal_image(self._index_sagittal, upper, lower), self._index_sagittal
+
+    def get_current_axial_image(self, upper, lower):
+        return self.get_axial_image(self._index_axial, upper, lower), self._index_axial

@@ -23,7 +23,7 @@ class GUI(tk.Tk):
         self.file_manager_frame = None
         self.dicom_viewer_frame = None
         self.imager = None
-        self.pdc_preparer = None
+        self.pcd_preparer = None
 
         self.init_gui()
 
@@ -37,14 +37,14 @@ class GUI(tk.Tk):
         self.file_manager_frame.grid(row=0, column=0, sticky='nw')
 
         load_dicom_button = ttk.Button(self, text='Load DICOM files', command=self.load_dicom_files)
-        load_dicom_button.grid(row=2, column=0, columnspan=2, sticky='new')
+        load_dicom_button.grid(row=1, column=0, columnspan=2, sticky='new')
 
         self.dicom_viewer_frame = dvf.DicomViewerFrame(self)
-        self.dicom_viewer_frame.grid(row=0, column=2, rowspan=3, sticky='nsew')
+        self.dicom_viewer_frame.grid(row=0, column=2, rowspan=4, sticky='nsew')
         self.dicom_viewer_frame.init_viewer_frame()
 
         self.pcd_preparer = cloud_point_preparer.PCDPrepare(self)
-        self.pcd_preparer.grid(row=1, column=0, columnspan=2, sticky='nsew')
+        self.pcd_preparer.grid(row=2, column=0, columnspan=2, sticky='nsew')
 
         self.bind("<Control-q>", self.close_app)
 
@@ -65,8 +65,11 @@ class GUI(tk.Tk):
             self.imager = dicom_imager.DicomImager(self.dicom_datasets)
 
             self.dicom_viewer_frame.set_imager(self.imager)
-            im, index = self.imager.get_current_image(self.dicom_viewer_frame.upper, self.dicom_viewer_frame.lower)
-            self.dicom_viewer_frame.show_image(im, index)
+            im_axial, index_axial = self.imager.get_current_axial_image(self.dicom_viewer_frame.upper,
+                                                                        self.dicom_viewer_frame.lower)
+            im_sagittal, index_sagittal = self.imager.get_current_sagittal_image(self.dicom_viewer_frame.upper,
+                                                                                 self.dicom_viewer_frame.lower)
+            self.dicom_viewer_frame.show_image(im_axial, index_axial, im_sagittal, index_sagittal)
 
             self.pcd_preparer.update_scales()
         except TypeError:
@@ -80,3 +83,7 @@ class GUI(tk.Tk):
                 self.dicom_datasets.sort(key=lambda x: x.SOPInstanceUID)
             except AttributeError:
                 pass
+
+    def display_pcd(self):
+        lower_slice = self.pcd_preparer.lower_slice.get()
+        upper_slice = self.pcd_preparer.upper_slice.get()

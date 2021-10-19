@@ -8,6 +8,9 @@ import irm_dist_calculator.referenceFiducials as rFi
 
 def main():
     gui = mainwidow.GUI()
+
+
+
     gui.mainloop()
 
 

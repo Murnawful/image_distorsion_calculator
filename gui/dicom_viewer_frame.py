@@ -13,16 +13,21 @@ class DicomViewerFrame(Frame):
 
         self.parent = parent
 
-        self.image = None
-        self.photo = None
-        self.canvas = None
-        self.imager_axial = None
+        self.image_ax = None
+        self.image_sag = None
+        self.photo_ax = None
+        self.photo_sag = None
+        self.canvas_axial = None
+        self.canvas_sagittal = None
+        self.imager = None
 
-        self.status = None
-        self.right_click_menu = None
+        self.arr_axial = None
+        self.arr_sagittal = None
+        self.index_axial = None
+        self.index_sagittal = None
 
-        self.mouse_wheel_down = False
-        self.last_mouse_pos = None
+        self.status_axial = None
+        self.status_sagittal = None
 
         self.upper = 0
         self.lower = 0
@@ -38,118 +43,112 @@ class DicomViewerFrame(Frame):
     def init_viewer_frame(self):
 
         # Image canvas
-        self.canvas = Canvas(self, bd=0, highlightthickness=0)
-        self.canvas.grid(row=0, column=0, sticky="w")
-        self.canvas.bind("<Button-3>", self.show_right_click_menu)  # <Button-3> is the right click event
-        self.canvas.bind("<MouseWheel>", self.scroll_images)
-        self.canvas.bind("<B2-Motion>", self.on_mouse_wheel_drag)
-        self.canvas.bind("<Button-2>", self.on_mouse_wheel_down)
-        self.canvas.bind("<ButtonRelease-2>", self.on_mouse_wheel_up)
-        #  self.canvas.bind("<Configure>", self.resize)
+        self.canvas_axial = Canvas(self, bd=0, highlightthickness=0)
+        self.canvas_axial.grid(row=0, column=0, sticky="w")
+        self.canvas_axial.bind("<MouseWheel>", self.scroll_axial_images)
+        self.canvas_axial.bind("<B1-Motion>", self.on_move_press)
+        self.canvas_axial.bind("<ButtonPress-1>", self.on_button_press)
+        self.canvas_axial.bind("<ButtonRelease-1>", self.on_button_release)
+
+        self.canvas_sagittal = Canvas(self, bd=0, highlightthickness=0)
+        self.canvas_sagittal.grid(row=0, column=1, sticky="w")
+        self.canvas_sagittal.bind("<MouseWheel>", self.scroll_sagittal_images)
 
         # Status bar
-        self.status = StatusBar(self)
-        self.status.grid(row=3, column=0, sticky="w")
+        self.status_axial = StatusBar(self)
+        self.status_axial.grid(row=3, column=0, sticky="w")
+        self.status_sagittal = StatusBar(self)
+        self.status_sagittal.grid(row=3, column=1, sticky="w")
 
-        # Right-click menu
-        self.right_click_menu = Menu(self.parent, tearoff=0)
-        self.right_click_menu.add_command(label="Beep", command=self.bell)
-        self.canvas.bind('<Motion>', self.motion)
-
-        self.canvas.bind("<B1-Motion>", self.on_move_press)
-        self.canvas.bind("<ButtonPress-1>", self.on_button_press)
-        self.canvas.bind("<ButtonRelease-1>", self.on_button_release)
+        self.canvas_axial.bind('<Motion>', self.motion_axial)
+        self.canvas_sagittal.bind('<Motion>', self.motion_sagittal)
 
     def on_button_press(self, event):
-        self.canvas.delete(self.selection)
+        self.canvas_axial.delete(self.selection)
 
         # save mouse drag start position
         self.start_x = event.x
         self.start_y = event.y
 
-        # create rectangle if not yet exist
-        #if not self.rect:
-        self.selection = self.canvas.create_rectangle(self.end_x, self.end_y, 1, 1, outline="green")
+        self.selection = self.canvas_axial.create_rectangle(self.end_x, self.end_y, 1, 1, outline="green")
 
     def on_move_press(self, event):
         curX, curY = (event.x, event.y)
         self.end_x = curX
         self.end_y = curY
 
-        self.motion(event)
+        self.motion_axial(event)
 
         # expand rectangle as you drag the mouse
-        self.canvas.coords(self.selection, self.start_x, self.start_y, curX, curY)
+        self.canvas_axial.coords(self.selection, self.start_x, self.start_y, curX, curY)
 
     def on_button_release(self, event):
-        self.roi = self.canvas.bbox(self.selection)
+        self.roi = self.canvas_axial.bbox(self.selection)
         showinfo(title="ROI", message=str(self.roi))
 
-    def show_image(self, numpy_array, index):
+    def show_image(self, array_axial, index_axial, array_sagittal, index_sagittal):
         self.upper = int(self.parent.pcd_preparer.get_current_upper().get())
         self.lower = int(self.parent.pcd_preparer.get_current_lower().get())
 
-        if numpy_array is None:
+        if array_axial is None:
+            return
+        if array_sagittal is None:
             return
 
         # Convert numpy array into a PhotoImage and add it to canvas
-        self.image = PIL.Image.fromarray(numpy_array)
-        self.photo = PIL.ImageTk.PhotoImage(self.image)
-        self.canvas.delete("IMG")
-        self.canvas.create_image(0, 0, image=self.photo, anchor=NW, tags="IMG")
-        self.canvas.create_text(17, 6, fill="green", text="Slice " + str(index))
+        self.image_ax = PIL.Image.fromarray(array_axial)
+        self.photo_ax = PIL.ImageTk.PhotoImage(self.image_ax)
+        self.canvas_axial.delete("IMG")
+        self.canvas_axial.create_image(0, 0, image=self.photo_ax, anchor=NW, tags="IMG")
+        self.canvas_axial.create_text(40, 10, fill="green", text="Slice " + str(index_axial), font=10)
 
-        width = self.image.width
-        height = self.image.height
+        self.image_sag = PIL.Image.fromarray(array_sagittal)
+        self.photo_sag = PIL.ImageTk.PhotoImage(self.image_sag)
+        self.canvas_sagittal.delete("IMG")
+        self.canvas_sagittal.create_image(0, 0, image=self.photo_sag, anchor=NW, tags="IMG")
+        self.canvas_sagittal.create_text(40, 10, fill="green", text="x = " + str(index_sagittal), font=10)
 
-        self.canvas.configure(width=width, height=height)
+        width_ax = self.image_ax.width
+        height_ax = self.image_ax.height
+        width_sag = self.image_sag.width
+        height_sag = self.image_sag.height
+
+        self.canvas_axial.configure(width=width_ax, height=height_ax)
+        self.canvas_sagittal.configure(width=width_sag, height=height_sag)
 
         # We need to at least fit the entire image, but don't shrink if we don't have to
-        width = max(self.parent.winfo_width(), width)
-        height = max(self.parent.winfo_height(), height + StatusBar.height)
+        width_ax = max(self.parent.winfo_width(), width_ax)
+        height_ax = max(self.parent.winfo_height(), height_ax + StatusBar.height)
+        width_sag = max(self.parent.winfo_width(), width_sag)
+        height_sag = max(self.parent.winfo_height(), height_sag + StatusBar.height)
 
         # Resize root window and prevent resizing smaller than the image
-        newsize = "{}x{}".format(width, height + StatusBar.height)
+        newsize = "{}x{}".format(width_ax + width_sag, height_ax + StatusBar.height)
         self.parent.geometry(newsize)
-        self.parent.minsize(width, height)
+        self.parent.minsize(width_ax + width_sag, height_ax)
 
-    def show_right_click_menu(self, e):
-        self.right_click_menu.post(e.x_root, e.y_root)
+    def scroll_sagittal_images(self, e):
+        self.imager.index_sagittal += int(e.delta / 120)
+        self.arr_sagittal, self.index_sagittal = self.imager.get_current_sagittal_image(self.upper, self.lower)
+        self.show_image(self.arr_axial, self.index_axial, self.arr_sagittal, self.index_sagittal)
 
-    def scroll_images(self, e):
-        self.imager_axial.index += int(e.delta / 120)
-        im, index = self.imager_axial.get_current_image(self.upper, self.lower)
-        self.show_image(im, index)
+    def scroll_axial_images(self, e):
+        self.imager.index_axial += int(e.delta / 120)
+        self.arr_axial, self.index_axial = self.imager.get_current_axial_image(self.upper, self.lower)
+        self.show_image(self.arr_axial, self.index_axial, self.arr_sagittal, self.index_sagittal)
 
     def change_range(self):
-        im, index = self.imager_axial.get_current_image(self.upper, self.lower)
-        self.show_image(im, index)
-
-    def on_mouse_wheel_down(self, e):
-        self.last_mouse_pos = (e.end_x, e.end_y)
-        self.mouse_wheel_down = True
-
-    def on_mouse_wheel_up(self, e):
-        self.last_mouse_pos = None
-        self.mouse_wheel_down = True
-
-    def on_mouse_wheel_drag(self, e):
-        if self.mouse_wheel_down:
-            delta = (e.end_x - self.last_mouse_pos[0], e.end_y - self.last_mouse_pos[1])
-            self.last_mouse_pos = (e.end_x, e.end_y)
-
-            self.imager_axial.window_width += delta[0] * 5
-            self.imager_axial.window_center += delta[1] * 5
-
-            im, index = self.imager_axial.get_current_image(self.upper, self.lower)
-            self.show_image(im, index)
-
-    def callback(self):
-        self.status.set("Not implemented yet!")
+        self.arr_axial, self.index_axial = self.imager.get_current_axial_image(self.upper, self.lower)
+        self.arr_sagittal, self.index_sagittal = self.imager.get_current_sagittal_image(self.upper, self.lower)
+        self.show_image(self.arr_axial, self.index_axial, self.arr_sagittal, self.index_sagittal)
 
     def set_imager(self, im):
-        self.imager_axial = im
+        self.imager = im
 
-    def motion(self, event):
+    def motion_axial(self, event):
         x, y = event.x, event.y
-        self.status.set('x = {}, y = {}'.format(x, y))
+        self.status_axial.set('x = {}, y = {}'.format(x, y))
+
+    def motion_sagittal(self, event):
+        y, z = event.x, event.y
+        self.status_sagittal.set('y = {}, z = {}'.format(y, z))

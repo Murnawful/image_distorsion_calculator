@@ -21,11 +21,11 @@ class FileManager(tk.Frame):
 
     def init_filemanager_frame(self):
         open_button = ttk.Button(self, text='Open DICOM files', command=self.select_file)
-        open_button.grid(column=0, row=2, sticky='w', padx=0, pady=0)
+        open_button.grid(column=0, row=2, sticky='ew', padx=0, pady=0)
         add_button = ttk.Button(self, text='Add DICOM files', command=self.add_file)
-        add_button.grid(column=1, row=2, sticky='w', padx=0, pady=0)
+        add_button.grid(column=1, row=2, sticky='ew', padx=0, pady=0)
         delete_button = ttk.Button(self, text='Delete DICOM files', command=self.delete_file)
-        delete_button.grid(column=2, row=2, sticky='w', padx=0, pady=0)
+        delete_button.grid(column=2, row=2, sticky='ew', padx=0, pady=0)
 
         self.listbox = tk.Listbox(self, listvariable=self.filenames, height=6, width=50, selectmode='extended')
         self.listbox.grid(columnspan=3, row=0, sticky='nwes')
