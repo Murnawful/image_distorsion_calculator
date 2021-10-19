@@ -3,7 +3,7 @@ from tkinter import ttk
 from tkinter.messagebox import showerror
 
 from gui import file_manager
-from gui import dicom_viewer_frame as dvf
+from gui import dicom_viewer_frame
 from gui import dicom_imager
 from gui import cloud_point_preparer
 
@@ -32,6 +32,7 @@ class GUI(tk.Tk):
         window_height = self.winfo_screenheight()
 
         self.geometry(f'{window_width}x{window_height}')
+        self.title("DistCal")
 
         self.file_manager_frame = file_manager.FileManager(self)
         self.file_manager_frame.grid(row=0, column=0, sticky='nw')
@@ -39,7 +40,7 @@ class GUI(tk.Tk):
         load_dicom_button = ttk.Button(self, text='Load DICOM files', command=self.load_dicom_files)
         load_dicom_button.grid(row=1, column=0, columnspan=2, sticky='new')
 
-        self.dicom_viewer_frame = dvf.DicomViewerFrame(self)
+        self.dicom_viewer_frame = dicom_viewer_frame.DicomViewerFrame(self)
         self.dicom_viewer_frame.grid(row=0, column=2, rowspan=4, sticky='nsew')
         self.dicom_viewer_frame.init_viewer_frame()
 
