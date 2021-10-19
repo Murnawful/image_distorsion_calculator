@@ -29,6 +29,8 @@ class DicomViewerFrame(Frame):
         self.status_axial = None
         self.status_sagittal = None
 
+        self.roi_definition = True
+
         self.upper = 0
         self.lower = 0
 
@@ -46,15 +48,18 @@ class DicomViewerFrame(Frame):
         self.canvas_axial = Canvas(self, bd=0, highlightthickness=0)
         self.canvas_axial.grid(row=0, column=0, sticky="w")
         self.canvas_axial.bind("<MouseWheel>", self.scroll_axial_images)
-        self.canvas_axial.bind("<B1-Motion>", self.on_move_press_axial)
-        self.canvas_axial.bind("<ButtonPress-1>", self.on_button_press_axial)
-        self.canvas_axial.bind("<ButtonRelease-1>", self.on_button_release)
+        if self.roi_definition:
+            self.canvas_axial.bind("<B1-Motion>", self.on_move_press_axial)
+            self.canvas_axial.bind("<ButtonPress-1>", self.on_button_press_axial)
+            self.canvas_axial.bind("<ButtonRelease-1>", self.on_button_release)
 
         self.canvas_sagittal = Canvas(self, bd=0, highlightthickness=0)
         self.canvas_sagittal.grid(row=0, column=1, sticky="w")
         self.canvas_sagittal.bind("<MouseWheel>", self.scroll_sagittal_images)
-        self.canvas_sagittal.bind("<B1-Motion>", self.on_move_press_sagittal)
-        self.canvas_sagittal.bind("<ButtonPress-1>", self.on_button_press_sagittal)
+        if self.roi_definition:
+            self.canvas_sagittal.bind("<B1-Motion>", self.on_move_press_sagittal)
+            self.canvas_sagittal.bind("<ButtonPress-1>", self.on_button_press_sagittal)
+            self.canvas_sagittal.bind("<ButtonRelease-1>", self.on_button_release)
 
         # Status bar
         self.status_axial = StatusBar(self)
@@ -67,14 +72,15 @@ class DicomViewerFrame(Frame):
 
     def on_button_press_axial(self, event):
         self.canvas_axial.delete(self.selection_axial)
+        self.canvas_sagittal.delete(self.selection_sagittal)
 
         # save mouse drag start position
         self.start_x = event.x
         self.start_y = event.y
 
         self.selection_axial = self.canvas_axial.create_rectangle(self.end_x, self.end_y, 0, 0, outline="green")
-        self.selection_sagittal = self.canvas_sagittal.create_rectangle(0, self.start_y, self.arr_sagittal.shape[1],
-                                                                        self.end_y, outline="green")
+        self.selection_sagittal = self.canvas_sagittal.create_rectangle(0, self.start_x, self.arr_sagittal.shape[1],
+                                                                        self.end_x, outline="green")
 
     def on_button_press_sagittal(self, event):
         self.canvas_sagittal.delete(self.selection_sagittal)
@@ -82,8 +88,8 @@ class DicomViewerFrame(Frame):
         # save mouse drag start position
         self.start_z = event.x
 
-        self.selection_sagittal = self.canvas_sagittal.create_rectangle(self.start_z, self.start_y, 0,
-                                                                        self.end_y, outline="green")
+        self.selection_sagittal = self.canvas_sagittal.create_rectangle(self.start_z, self.start_x, 0,
+                                                                        self.end_x, outline="green")
 
     def on_move_press_axial(self, event):
         curX, curY = (event.x, event.y)
@@ -94,20 +100,21 @@ class DicomViewerFrame(Frame):
 
         # expand rectangle as you drag the mouse
         self.canvas_axial.coords(self.selection_axial, self.start_x, self.start_y, curX, curY)
-        self.canvas_sagittal.coords(self.selection_sagittal, 0, self.start_y, self.arr_sagittal.shape[1], curY)
+        self.canvas_sagittal.coords(self.selection_sagittal, 0, self.start_x, self.arr_sagittal.shape[1], curX)
 
     def on_move_press_sagittal(self, event):
-        curZ, curY = (event.x, event.y)
+        curZ = event.x
         self.end_z = curZ
 
-        self.motion_axial(event)
+        self.motion_sagittal(event)
 
         # expand rectangle as you drag the mouse
-        self.canvas_sagittal.coords(self.selection_sagittal, self.start_z, self.start_y, curZ, self.end_y)
+        self.canvas_sagittal.coords(self.selection_sagittal, self.start_z, self.start_x, curZ, self.end_x)
 
     def on_button_release(self, event):
-        self.roi = self.canvas_axial.bbox(self.selection_axial)
-        showinfo(title="ROI", message=str(self.roi))
+        roi_axial = self.canvas_axial.bbox(self.selection_axial)
+        roi_sagittal = self.canvas_sagittal.bbox(self.selection_sagittal)
+        self.roi = ((roi_axial[0], roi_axial[1], roi_sagittal[0]), (roi_axial[2], roi_axial[3], roi_sagittal[2]))
 
     def show_image(self, array_axial, index_axial, array_sagittal, index_sagittal):
         self.upper = int(self.parent.pcd_preparer.get_current_upper().get())
@@ -154,7 +161,11 @@ class DicomViewerFrame(Frame):
         # self.parent.minsize(width_ax + width_sag, height_ax + height_sag)
 
         if self.selection_axial is not None:
-            self.selection_axial = self.canvas_axial.create_rectangle(self.start_x, self.start_y, self.end_x, self.end_y, outline="green")
+            self.selection_axial = self.canvas_axial.create_rectangle(self.start_x, self.start_y, self.end_x,
+                                                                      self.end_y, outline="green")
+        if self.selection_sagittal is not None:
+            self.selection_sagittal = self.canvas_sagittal.create_rectangle(self.start_z, self.start_x, self.end_z,
+                                                                         self.end_x, outline="green")
 
     def scroll_sagittal_images(self, e):
         self.imager.index_sagittal += int(e.delta / 120)
@@ -179,5 +190,5 @@ class DicomViewerFrame(Frame):
         self.status_axial.set('x = {}, y = {}'.format(x, y))
 
     def motion_sagittal(self, event):
-        y, z = event.x, event.y
+        z, y = event.x, event.y
         self.status_sagittal.set('y = {}, z = {}'.format(y, z))

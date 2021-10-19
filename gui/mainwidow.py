@@ -85,6 +85,6 @@ class GUI(tk.Tk):
             except AttributeError:
                 pass
 
-    def display_pcd(self):
+    def place_virtual_grid(self):
         lower_slice = self.pcd_preparer.lower_slice.get()
         upper_slice = self.pcd_preparer.upper_slice.get()
