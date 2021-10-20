@@ -2,14 +2,20 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import showerror
 
+import numpy as np
+
 from gui import file_manager
 from gui import dicom_viewer_frame
 from gui import dicom_imager
 from gui import cloud_point_preparer
 
-import irm_dist_calculator as idc
+from irm_dist_calculator import imageGrid as ig
+
+import matplotlib.pyplot as plt
 
 import pydicom as pdcm
+
+import open3d as o3d
 
 
 class GUI(tk.Tk):
@@ -86,5 +92,15 @@ class GUI(tk.Tk):
                 pass
 
     def place_virtual_grid(self):
-        lower_slice = self.pcd_preparer.lower_slice.get()
-        upper_slice = self.pcd_preparer.upper_slice.get()
+        try:
+            roi = self.dicom_viewer_frame.roi
+            arr = self.imager.values
+            upper = self.pcd_preparer.current_value_upper.get()
+            lower = self.pcd_preparer.current_value_lower.get()
+            im_grid = ig.ImageGrid(values=arr, spacing=self.imager.spacings, image_roi=roi,
+                                   range_hu=(lower, upper), is_mri=self.pcd_preparer.is_irm.get())
+            im_grid.convert()
+            ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
+            o3d.visualization.draw_geometries([ref_frame, im_grid.pcd])
+        except TypeError:
+            showerror(title="Error", message="No ROI was defined !")

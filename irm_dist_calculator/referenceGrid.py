@@ -3,17 +3,17 @@ import numpy as np
 
 
 class ReferenceGrid:
-    spacing = 13e-3
-    param_long = np.linspace(-100, 100, 1000) * (3 * spacing / 100)
-    param_short = np.linspace(-100, 100, 1000) * (2 * spacing / 100)
-    data = None
-    pcd = None
-    is_built = False
-    pose_graph = None
-    vertex = None
 
     def __init__(self, center):
         self.offset = center
+        self.spacing = 13e-3
+        self.param_long = np.linspace(-100, 100, 1000) * (3 * self.spacing / 100)
+        self.param_short = np.linspace(-100, 100, 1000) * (2 * self.spacing / 100)
+        self.data = None
+        self.pcd = None
+        self.is_built = False
+        self.pose_graph = None
+        self.vertex = None
 
     def generate_vertex(self):
         v = []

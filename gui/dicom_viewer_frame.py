@@ -40,21 +40,26 @@ class DicomViewerFrame(Frame):
         self.end_x = self.end_y = self.end_z = 0
         self.roi = None
 
+        self.offset = 700
+
         self.init_viewer_frame()
 
     def init_viewer_frame(self):
 
+        self.roi = None
+
         # Image canvas
         self.canvas_axial = Canvas(self, bd=0, highlightthickness=0)
-        self.canvas_axial.grid(row=0, column=0, sticky="w")
+        self.canvas_axial.grid(row=0, column=0, sticky="nw")
         self.canvas_axial.bind("<MouseWheel>", self.scroll_axial_images)
+        self.canvas_axial.config(width=self.offset)
         if self.roi_definition:
             self.canvas_axial.bind("<B1-Motion>", self.on_move_press_axial)
             self.canvas_axial.bind("<ButtonPress-1>", self.on_button_press_axial)
             self.canvas_axial.bind("<ButtonRelease-1>", self.on_button_release)
 
         self.canvas_sagittal = Canvas(self, bd=0, highlightthickness=0)
-        self.canvas_sagittal.grid(row=0, column=1, sticky="w")
+        self.canvas_sagittal.grid(row=0, column=1, sticky="nw")
         self.canvas_sagittal.bind("<MouseWheel>", self.scroll_sagittal_images)
         if self.roi_definition:
             self.canvas_sagittal.bind("<B1-Motion>", self.on_move_press_sagittal)
@@ -128,13 +133,14 @@ class DicomViewerFrame(Frame):
         # Convert numpy array into a PhotoImage and add it to canvas
         self.image_ax = PIL.Image.fromarray(array_axial)
         self.photo_ax = PIL.ImageTk.PhotoImage(self.image_ax)
+        self.image_sag = PIL.Image.fromarray(array_sagittal)
+        self.photo_sag = PIL.ImageTk.PhotoImage(self.image_sag)
+
         self.canvas_axial.delete("IMG")
         self.canvas_axial.create_image(0, 0, image=self.photo_ax, anchor=NW, tags="IMG")
         self.canvas_axial.create_text(40, 10, fill="green", text="Slice " + str(index_axial), font=10)
         self.canvas_axial.create_text(40, 40, fill="green", text="Axial", font=10)
 
-        self.image_sag = PIL.Image.fromarray(array_sagittal)
-        self.photo_sag = PIL.ImageTk.PhotoImage(self.image_sag)
         self.canvas_sagittal.delete("IMG")
         self.canvas_sagittal.create_image(0, 0, image=self.photo_sag, anchor=NW, tags="IMG")
         self.canvas_sagittal.create_text(40, 10, fill="green", text="x = " + str(index_sagittal), font=10)
@@ -165,7 +171,7 @@ class DicomViewerFrame(Frame):
                                                                       self.end_y, outline="green")
         if self.selection_sagittal is not None:
             self.selection_sagittal = self.canvas_sagittal.create_rectangle(self.start_z, self.start_x, self.end_z,
-                                                                         self.end_x, outline="green")
+                                                                            self.end_x, outline="green")
 
     def scroll_sagittal_images(self, e):
         self.imager.index_sagittal += int(e.delta / 120)
