@@ -8,6 +8,7 @@ from gui import dicom_imager
 from gui import cloud_point_preparer
 
 from irm_dist_calculator import imageGrid as ig
+from irm_dist_calculator import referenceGrid as rg
 
 import pydicom as pdcm
 
@@ -26,6 +27,8 @@ class GUI(tk.Tk):
         self.dicom_viewer_frame = None
         self.imager = None
         self.pcd_preparer = None
+        self.value_reg_coarse = tk.StringVar()
+        self.value_reg_fine = tk.StringVar()
 
         self.init_gui()
 
@@ -48,6 +51,11 @@ class GUI(tk.Tk):
 
         self.pcd_preparer = cloud_point_preparer.PCDPrepare(self)
         self.pcd_preparer.grid(row=2, column=0, columnspan=2, sticky='nsew')
+
+        entry_coarse = ttk.Entry(self, textvariable=self.value_reg_coarse)
+        entry_fine = ttk.Entry(self, textvariable=self.value_reg_fine)
+        entry_coarse.grid(row=3, column=0, sticky="w")
+        entry_fine.grid(row=3, column=1, sticky="w")
 
         self.bind("<Control-q>", self.close_app)
 
@@ -94,10 +102,17 @@ class GUI(tk.Tk):
             upper = self.pcd_preparer.current_value_upper.get()
             lower = self.pcd_preparer.current_value_lower.get()
             irm = self.pcd_preparer.is_irm.get()
+            center_ = self.dicom_viewer_frame.get_virtual_grid_center()
             im_grid = ig.ImageGrid(values=arr, spacing=self.imager.spacings, image_roi=roi, range_values=(lower, upper),
                                    is_mri=irm)
+            ref_grid = rg.ReferenceGrid(center=center_)
+            ref_grid.build()
+            ref_grid.convert()
             im_grid.convert()
             ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
-            o3d.visualization.draw_geometries([ref_frame, im_grid.pcd])
+            ref_grid.pcd.paint_uniform_color([0, 0, 1])
+            o3d.visualization.draw_geometries([ref_frame, im_grid.pcd, ref_grid.pcd])
+            ref_grid.register(im_grid.pcd, float(self.value_reg_coarse.get()), float(self.value_reg_fine.get()))
+            o3d.visualization.draw_geometries([ref_frame, im_grid.pcd, ref_grid.pcd])
         except TypeError:
             showerror(title="Error", message="No ROI was defined !")

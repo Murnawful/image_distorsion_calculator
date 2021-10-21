@@ -132,10 +132,10 @@ class ReferenceGrid:
         # Creating ICP registration
         icp_coarse = o3d.pipelines.registration.registration_icp(source, self.pcd, max_correspondence_distance_coarse,
                                                                  np.identity(4),
-                                                                 o3d.pipelines.registration.TransformationEstimationPointToPlane())
+                                                                 o3d.pipelines.registration.TransformationEstimationPointToPoint())
         icp_fine = o3d.pipelines.registration.registration_icp(source, self.pcd, max_correspondence_distance_fine,
                                                                icp_coarse.transformation,
-                                                               o3d.pipelines.registration.TransformationEstimationPointToPlane())
+                                                               o3d.pipelines.registration.TransformationEstimationPointToPoint())
 
         # Retaining the fine registration as it is the most precise and getting the corresponding transformation
         transformation_icp = icp_fine.transformation

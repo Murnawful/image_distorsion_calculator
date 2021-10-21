@@ -1,10 +1,7 @@
 import PIL.Image
 import PIL.ImageTk
-import numpy as np
 
 from gui.statusbar import *
-
-from tkinter.messagebox import showinfo
 
 
 class DicomViewerFrame(Frame):
@@ -144,6 +141,23 @@ class DicomViewerFrame(Frame):
             self.center_coronal = self.canvas_coronal.create_oval(z1, x1, z2, x2, fill="red")
         return 0
 
+    def change_range(self):
+        self.arr_axial, self.index_axial = self.imager.get_current_axial_image(self.upper, self.lower)
+        self.arr_coronal, self.index_coronal = self.imager.get_current_coronal_image(self.upper, self.lower)
+        self.show_image(self.arr_axial, self.index_axial, self.arr_coronal, self.index_coronal)
+        return 0
+
+    def set_imager(self, im):
+        self.imager = im
+        return 0
+
+    def get_virtual_grid_center(self):
+        spacing = self.imager.spacings
+        x = self.x * spacing[0] * 1e-3
+        y = self.y * spacing[1] * 1e-3
+        z = self.z * spacing[2] * 1e-3
+        return x, y, z
+
     def on_right_press_axial(self, event):
         self.canvas_axial.delete(self.center_axial)
         self.canvas_coronal.delete(self.center_coronal)
@@ -160,17 +174,6 @@ class DicomViewerFrame(Frame):
         self.center_coronal = self.canvas_coronal.create_oval(x3, y3, x4, y4, fill="red")
         return 0
 
-    def on_right_press_coronal(self, event):
-        self.canvas_coronal.delete(self.center_coronal)
-
-        self.z = event.x
-
-        x1, z1 = (self.x - self.extent), (self.z - self.extent)
-        x2, z2 = (self.x + self.extent), (self.z + self.extent)
-
-        self.center_coronal = self.canvas_coronal.create_oval(z1, x1, z2, x2, fill="red")
-        return 0
-
     def on_button_press_axial(self, event):
         self.canvas_axial.delete(self.selection_axial)
         self.canvas_coronal.delete(self.selection_coronal)
@@ -184,16 +187,6 @@ class DicomViewerFrame(Frame):
                                                                       self.end_x, outline="green")
         return 0
 
-    def on_button_press_coronal(self, event):
-        self.canvas_coronal.delete(self.selection_coronal)
-
-        # save mouse drag start position
-        self.start_z = event.x
-
-        self.selection_coronal = self.canvas_coronal.create_rectangle(self.start_z, self.start_x, 0,
-                                                                      self.end_x, outline="green")
-        return 0
-
     def on_move_press_axial(self, event):
         curX, curY = (event.x, event.y)
         self.end_x = curX
@@ -204,6 +197,38 @@ class DicomViewerFrame(Frame):
         # expand rectangle as you drag the mouse
         self.canvas_axial.coords(self.selection_axial, self.start_x, self.start_y, curX, curY)
         self.canvas_coronal.coords(self.selection_coronal, 0, self.start_x, self.arr_coronal.shape[1], curX)
+        return 0
+
+    def scroll_axial_images(self, event):
+        self.imager.index_axial += int(event.delta / 120)
+        self.arr_axial, self.index_axial = self.imager.get_current_axial_image(self.upper, self.lower)
+        self.show_image(self.arr_axial, self.index_axial, self.arr_coronal, self.index_coronal)
+        return 0
+
+    def motion_axial(self, event):
+        x, y = event.x, event.y
+        self.status_axial.set('x = {}, y = {}'.format(x, y))
+        return 0
+
+    def on_right_press_coronal(self, event):
+        self.canvas_coronal.delete(self.center_coronal)
+
+        self.z = event.x
+
+        x1, z1 = (self.x - self.extent), (self.z - self.extent)
+        x2, z2 = (self.x + self.extent), (self.z + self.extent)
+
+        self.center_coronal = self.canvas_coronal.create_oval(z1, x1, z2, x2, fill="red")
+        return 0
+
+    def on_button_press_coronal(self, event):
+        self.canvas_coronal.delete(self.selection_coronal)
+
+        # save mouse drag start position
+        self.start_z = event.x
+
+        self.selection_coronal = self.canvas_coronal.create_rectangle(self.start_z, self.start_x, 0,
+                                                                      self.end_x, outline="green")
         return 0
 
     def on_move_press_coronal(self, event):
@@ -222,31 +247,10 @@ class DicomViewerFrame(Frame):
         self.roi = ((roi_axial[0], roi_axial[1], roi_sagittal[0] + 1), (roi_axial[2], roi_axial[3], roi_sagittal[2] - 1))
         return 0
 
-    def scroll_coronal_images(self, e):
-        self.imager.index_coronal += int(e.delta / 120)
+    def scroll_coronal_images(self, event):
+        self.imager.index_coronal += int(event.delta / 120)
         self.arr_coronal, self.index_coronal = self.imager.get_current_coronal_image(self.upper, self.lower)
         self.show_image(self.arr_axial, self.index_axial, self.arr_coronal, self.index_coronal)
-        return 0
-
-    def scroll_axial_images(self, e):
-        self.imager.index_axial += int(e.delta / 120)
-        self.arr_axial, self.index_axial = self.imager.get_current_axial_image(self.upper, self.lower)
-        self.show_image(self.arr_axial, self.index_axial, self.arr_coronal, self.index_coronal)
-        return 0
-
-    def change_range(self):
-        self.arr_axial, self.index_axial = self.imager.get_current_axial_image(self.upper, self.lower)
-        self.arr_coronal, self.index_coronal = self.imager.get_current_coronal_image(self.upper, self.lower)
-        self.show_image(self.arr_axial, self.index_axial, self.arr_coronal, self.index_coronal)
-        return 0
-
-    def set_imager(self, im):
-        self.imager = im
-        return 0
-
-    def motion_axial(self, event):
-        x, y = event.x, event.y
-        self.status_axial.set('x = {}, y = {}'.format(x, y))
         return 0
 
     def motion_coronal(self, event):

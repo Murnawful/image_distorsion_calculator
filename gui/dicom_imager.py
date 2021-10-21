@@ -11,10 +11,10 @@ class DicomImager:
         self._window_width = 1
         self._window_center = 0
 
-        self.size = (int(datasets[0].Rows), int(datasets[0].Columns), len(datasets))
-        self.spacings = (float(datasets[0].PixelSpacing[0]),
-                         float(datasets[0].PixelSpacing[1]),
-                         float(datasets[0].SliceThickness))
+        self.size = (int(datasets[1].Rows), int(datasets[1].Columns), len(datasets))
+        self.spacings = (float(datasets[1].PixelSpacing[0]),
+                         float(datasets[1].PixelSpacing[1]),
+                         float(datasets[1].SliceThickness))
 
         self.axes = (np.arange(0.0, (self.size[0] + 1) * self.spacings[0], self.spacings[0]),
                      np.arange(0.0, (self.size[2] + 1) * self.spacings[2], self.spacings[2]),
