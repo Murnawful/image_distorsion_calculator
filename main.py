@@ -1,21 +1,17 @@
 from gui import mainwidow
 
-import open3d as o3d
-import pydicom as pdcm
-import numpy as np
-import irm_dist_calculator.referenceFiducials as rFi
+import gc
 
 
 def main():
     gui = mainwidow.GUI()
-
-
-
     gui.mainloop()
 
 
 if __name__ == "__main__":
     main()
+
+gc.collect()
 
 
 ################ Stereotactic space reconstruction ################

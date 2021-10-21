@@ -1,14 +1,10 @@
-import os
-
-import matplotlib.pyplot as plt
 import numpy as np
 import open3d as o3d
-import pydicom as pdcm
 
 
 class ImageGrid:
 
-    def __init__(self, values, spacing, image_roi=None, range_hu=(0, 200000), is_mri=False):
+    def __init__(self, values, spacing, image_roi=None, range_values=(0, 200000), is_mri=False):
         self.data = None
         self.points = None
         self.pcd = None
@@ -24,7 +20,7 @@ class ImageGrid:
         try:
             self.set_spacing(spacing)
             self.data = values
-            self.hu_range = range_hu
+            self.hu_range = range_values
             self.imageIsMri = is_mri
             if image_roi is None:
                 self.roi = None

@@ -7,7 +7,7 @@ class DicomImager:
 
         self.datasets = datasets
         self._index_axial = 0
-        self._index_sagittal = 0
+        self._index_coronal = 0
         self._window_width = 1
         self._window_center = 0
 
@@ -30,16 +30,16 @@ class DicomImager:
         self.min_value = np.amin(self.values)
 
     @property
-    def index_sagittal(self):
-        return self._index_sagittal
+    def index_coronal(self):
+        return self._index_coronal
 
-    @index_sagittal.setter
-    def index_sagittal(self, value):
+    @index_coronal.setter
+    def index_coronal(self, value):
 
         while value < 0:
             value += self.size[0]
 
-        self._index_sagittal = value % self.size[0]
+        self._index_coronal = value % self.size[0]
 
     @property
     def index_axial(self):
@@ -69,7 +69,7 @@ class DicomImager:
     def window_center(self, value):
         self._window_center = value
 
-    def get_sagittal_image(self, index, upper, lower):
+    def get_coronal_image(self, index, upper, lower):
         # int32 true values (HU or brightness units)
         img = self.values[index, :, :]
 
@@ -97,8 +97,8 @@ class DicomImager:
 
         return res
 
-    def get_current_sagittal_image(self, upper, lower):
-        return self.get_sagittal_image(self._index_sagittal, upper, lower), self._index_sagittal
+    def get_current_coronal_image(self, upper, lower):
+        return self.get_coronal_image(self._index_coronal, upper, lower), self._index_coronal
 
     def get_current_axial_image(self, upper, lower):
         return self.get_axial_image(self._index_axial, upper, lower), self._index_axial

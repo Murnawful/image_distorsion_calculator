@@ -2,16 +2,12 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.messagebox import showerror
 
-import numpy as np
-
 from gui import file_manager
 from gui import dicom_viewer_frame
 from gui import dicom_imager
 from gui import cloud_point_preparer
 
 from irm_dist_calculator import imageGrid as ig
-
-import matplotlib.pyplot as plt
 
 import pydicom as pdcm
 
@@ -74,8 +70,8 @@ class GUI(tk.Tk):
             self.dicom_viewer_frame.set_imager(self.imager)
             im_axial, index_axial = self.imager.get_current_axial_image(self.dicom_viewer_frame.upper,
                                                                         self.dicom_viewer_frame.lower)
-            im_sagittal, index_sagittal = self.imager.get_current_sagittal_image(self.dicom_viewer_frame.upper,
-                                                                                 self.dicom_viewer_frame.lower)
+            im_sagittal, index_sagittal = self.imager.get_current_coronal_image(self.dicom_viewer_frame.upper,
+                                                                                self.dicom_viewer_frame.lower)
             self.dicom_viewer_frame.show_image(im_axial, index_axial, im_sagittal, index_sagittal)
 
             self.pcd_preparer.update_scales()
@@ -97,8 +93,9 @@ class GUI(tk.Tk):
             arr = self.imager.values
             upper = self.pcd_preparer.current_value_upper.get()
             lower = self.pcd_preparer.current_value_lower.get()
-            im_grid = ig.ImageGrid(values=arr, spacing=self.imager.spacings, image_roi=roi,
-                                   range_hu=(lower, upper), is_mri=self.pcd_preparer.is_irm.get())
+            irm = self.pcd_preparer.is_irm.get()
+            im_grid = ig.ImageGrid(values=arr, spacing=self.imager.spacings, image_roi=roi, range_values=(lower, upper),
+                                   is_mri=irm)
             im_grid.convert()
             ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.05, origin=[0, 0, 0])
             o3d.visualization.draw_geometries([ref_frame, im_grid.pcd])
