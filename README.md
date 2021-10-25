@@ -3,6 +3,8 @@
 This program is aimed at providing a way for the user to quantitatively assess geometric distorsions
 in MR images using a CIRS STEEV phantom. Acquisitions should be performed using the spatial 3D distorsion insert.
 
+You can leave the application by pressing _<Ctrl-q>_
+
 ### _Required libraries:_
 * Open3D
 * Pydicom

@@ -10,6 +10,7 @@ from gui import cloud_point_preparer
 
 from irm_dist_calculator import imageGrid as ig
 from irm_dist_calculator import referenceGrid as rg
+from irm_dist_calculator import analyzer as a
 
 import pydicom as pdcm
 
@@ -40,6 +41,9 @@ class GUI(tk.Tk):
 
         self.progress = None
 
+        self.vertex_number = 0
+        self.analyzer = None
+
         self.init_gui()
 
     def init_gui(self):
@@ -63,8 +67,13 @@ class GUI(tk.Tk):
         self.pcd_preparer = cloud_point_preparer.PCDPrepare(self)
         self.pcd_preparer.grid(row=2, column=0, columnspan=2, sticky='nsew')
 
+        analysis_button = ttk.Button(self, text='Launch analysis', command=self.launch_analysis)
+
         self.progress = ttk.Progressbar(self, orient="horizontal", mode="indeterminate", length=300)
         self.progress.grid(column=0, row=3, columnspan=2, sticky='sw', pady=10)
+
+        self.t1 = threading.Thread(target=self.registration_thread)
+        self.t2 = threading.Thread(target=self.progress.start)
 
         self.bind("<Control-q>", self.close_app)
 
@@ -134,13 +143,34 @@ class GUI(tk.Tk):
 
             o3d.visualization.draw_geometries([self.ref_frame, self.im_grid.pcd, self.ref_grid.pcd])
             self.progress.stop()
+            answer = askyesno(title="Saving", message="Save results of registration ?")
+            if answer:
+                self.ref_grid.save_point_cloud("../data/", "registeredGrid")
+                self.im_grid.save_point_cloud("../data/", "realGrid")
         except TypeError:
             showerror(title="Error", message="No parameters for registration were given !")
         except ValueError:
             showerror(title="Error", message="Wrong values for coregistration !")
 
     def launch_registration(self):
-        self.t1 = threading.Thread(target=self.registration_thread)
-        self.t2 = threading.Thread(target=self.progress.start)
         self.t2.start()
         self.t1.start()
+
+    def analysis_thread(self):
+        self.analyzer.launch_analysis()
+
+    def set_progress(self):
+        self.progress['value'] += round(self.analyzer.index / self.vertex_number * 100, 2)
+
+    def launch_analysis(self):
+        if not self.t1.is_alive() or not self.t2.is_alive():
+            self.analyzer = a.Analyzer(dir_tofile="../data/",
+                                       file_source="realGrid.ply",
+                                       file_vertex="registeredGrid_vertex.ply",
+                                       file_registered="registeredGrid_full.ply")
+            self.vertex_number = self.analyzer.points_vertex.shape[0]
+            self.progress['mode'] = 'determinate'
+            self.t2 = threading.Thread(target=self.set_progress)
+            self.t1 = threading.Thread(target=self.analysis_thread)
+            self.t2.start()
+            self.t1.start()
