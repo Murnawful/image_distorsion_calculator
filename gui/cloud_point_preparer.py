@@ -19,6 +19,9 @@ class PCDPrepare(tk.Frame):
         self.invert_for_irm = None
         self.is_irm = tk.BooleanVar()
 
+        self.value_reg_coarse = tk.StringVar()
+        self.value_reg_fine = tk.StringVar()
+
         self.init_frame()
 
     def init_frame(self):
@@ -47,6 +50,19 @@ class PCDPrepare(tk.Frame):
 
         virtual_grid_button = ttk.Button(self, text='Place virtual grid', command=self.parent.place_virtual_grid)
         virtual_grid_button.grid(row=5, column=0, columnspan=3, sticky='new')
+
+        coarse_label = tk.Label(self, text="Coarse regsitration")
+        coarse_label.grid(row=6, column=0, sticky='w')
+        fine_label = tk.Label(self, text="Fine regsitration")
+        fine_label.grid(row=6, column=1, sticky='w')
+        entry_coarse = ttk.Entry(self, textvariable=self.value_reg_coarse)
+        entry_fine = ttk.Entry(self, textvariable=self.value_reg_fine)
+        entry_coarse.grid(row=7, column=0, sticky="w")
+        entry_fine.grid(row=7, column=1, sticky="w")
+
+        registration_button = ttk.Button(self, text="Launch coregistration",
+                                         command=self.parent.launch_registration)
+        registration_button.grid(row=8, column=0, columnspan=3, sticky="new")
 
     def get_current_upper(self):
         return self.current_value_upper

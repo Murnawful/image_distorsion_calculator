@@ -37,7 +37,7 @@ class DicomViewerFrame(Frame):
         self.center_coronal = None
         self.start_x = self.start_y = self.start_z = 0
         self.end_x = self.end_y = self.end_z = 0
-        self.x = self.y = self.z = 0
+        self.x_center = self.y_center = self.z_center = 0
         self.roi = None
 
         self.offset = 800
@@ -121,23 +121,23 @@ class DicomViewerFrame(Frame):
         # Resize root window and prevent resizing smaller than the image
         newsize = "{}x{}".format(width_ax + width_sag, height_ax + StatusBar.height)
 
-        self.parent.geometry(newsize)
+        # self.parent.geometry(newsize)
         # self.parent.minsize(width_ax + width_sag, height_ax + height_sag)
 
         if self.selection_axial is not None:
             self.selection_axial = self.canvas_axial.create_rectangle(self.start_x, self.start_y, self.end_x,
                                                                       self.end_y, outline="green")
         if self.center_axial is not None:
-            x1, y1 = (self.x - self.extent), (self.y - self.extent)
-            x2, y2 = (self.x + self.extent), (self.y + self.extent)
+            x1, y1 = (self.x_center - self.extent), (self.y_center - self.extent)
+            x2, y2 = (self.x_center + self.extent), (self.y_center + self.extent)
             self.center_axial = self.canvas_axial.create_oval(x1, y1, x2, y2, fill="red")
 
         if self.selection_coronal is not None:
             self.selection_coronal = self.canvas_coronal.create_rectangle(self.start_z, self.start_x, self.end_z,
                                                                           self.end_x, outline="green")
         if self.center_coronal is not None:
-            x1, z1 = (self.x - self.extent), (self.z - self.extent)
-            x2, z2 = (self.x + self.extent), (self.z + self.extent)
+            x1, z1 = (self.x_center - self.extent), (self.z_center - self.extent)
+            x2, z2 = (self.x_center + self.extent), (self.z_center + self.extent)
             self.center_coronal = self.canvas_coronal.create_oval(z1, x1, z2, x2, fill="red")
         return 0
 
@@ -153,22 +153,22 @@ class DicomViewerFrame(Frame):
 
     def get_virtual_grid_center(self):
         spacing = self.imager.spacings
-        x = self.x * spacing[0] * 1e-3
-        y = self.y * spacing[1] * 1e-3
-        z = self.z * spacing[2] * 1e-3
+        x = self.x_center * spacing[2] * 1e-3
+        y = self.y_center * spacing[1] * 1e-3
+        z = (self.imager.size[2] - self.z_center) * spacing[2] * 1e-3
         return x, y, z
 
     def on_right_press_axial(self, event):
         self.canvas_axial.delete(self.center_axial)
         self.canvas_coronal.delete(self.center_coronal)
 
-        self.x = event.x
-        self.y = event.y
+        self.x_center = event.x
+        self.y_center = event.y
 
-        x1, y1 = (self.x - self.extent), (self.y - self.extent)
-        x2, y2 = (self.x + self.extent), (self.y + self.extent)
-        x3, y3 = ((self.image_cor.width // 2) - self.extent), (self.x - self.extent)
-        x4, y4 = ((self.image_cor.width // 2) + self.extent), (self.x + self.extent)
+        x1, y1 = (self.x_center - self.extent), (self.y_center - self.extent)
+        x2, y2 = (self.x_center + self.extent), (self.y_center + self.extent)
+        x3, y3 = ((self.image_cor.width // 2) - self.extent), (self.x_center - self.extent)
+        x4, y4 = ((self.image_cor.width // 2) + self.extent), (self.x_center + self.extent)
 
         self.center_axial = self.canvas_axial.create_oval(x1, y1, x2, y2, fill="red")
         self.center_coronal = self.canvas_coronal.create_oval(x3, y3, x4, y4, fill="red")
@@ -213,10 +213,10 @@ class DicomViewerFrame(Frame):
     def on_right_press_coronal(self, event):
         self.canvas_coronal.delete(self.center_coronal)
 
-        self.z = event.x
+        self.z_center = event.x
 
-        x1, z1 = (self.x - self.extent), (self.z - self.extent)
-        x2, z2 = (self.x + self.extent), (self.z + self.extent)
+        x1, z1 = (self.x_center - self.extent), (self.z_center - self.extent)
+        x2, z2 = (self.x_center + self.extent), (self.z_center + self.extent)
 
         self.center_coronal = self.canvas_coronal.create_oval(z1, x1, z2, x2, fill="red")
         return 0
