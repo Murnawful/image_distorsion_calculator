@@ -36,10 +36,11 @@ class GUI(tk.Tk):
         self.ref_grid = None
         self.ref_frame = None
 
+        self.progress_window = None
+
         self.t1 = None
         self.t2 = None
-
-        self.progress = None
+        self.popup_progress = None
 
         self.vertex_number = 0
         self.analyzer = None
@@ -69,11 +70,8 @@ class GUI(tk.Tk):
 
         analysis_button = ttk.Button(self, text='Launch analysis', command=self.launch_analysis)
 
-        self.progress = ttk.Progressbar(self, orient="horizontal", mode="indeterminate", length=300)
-        self.progress.grid(column=0, row=3, columnspan=2, sticky='sw', pady=10)
-
         self.t1 = threading.Thread(target=self.registration_thread)
-        self.t2 = threading.Thread(target=self.progress.start)
+        self.t2 = threading.Thread(target=self.display_progress)
 
         self.bind("<Control-q>", self.close_app)
 
@@ -140,17 +138,25 @@ class GUI(tk.Tk):
         try:
             self.ref_grid.register(self.im_grid.pcd, float(self.pcd_preparer.value_reg_coarse.get()),
                                    float(self.pcd_preparer.value_reg_fine.get()))
-
+            self.popup_progress.destroy()
             o3d.visualization.draw_geometries([self.ref_frame, self.im_grid.pcd, self.ref_grid.pcd])
-            self.progress.stop()
             answer = askyesno(title="Saving", message="Save results of registration ?")
             if answer:
-                self.ref_grid.save_point_cloud("../data/", "registeredGrid")
-                self.im_grid.save_point_cloud("../data/", "realGrid")
+                self.ref_grid.save_point_cloud("data/", "registeredGrid")
+                self.im_grid.save_point_cloud("data/", "realGrid")
         except TypeError:
             showerror(title="Error", message="No parameters for registration were given !")
         except ValueError:
             showerror(title="Error", message="Wrong values for coregistration !")
+
+    def display_progress(self):
+        self.popup_progress = tk.Toplevel()
+        self.popup_progress.geometry("240x100")
+        tk.Label(self.popup_progress, text="Registering...").grid(row=0, column=0, pady=10)
+        progress = ttk.Progressbar(self.popup_progress, mode="indeterminate", length=200)
+        progress.grid(row=1, column=0, padx=20)
+        self.popup_progress.pack_slaves()
+        progress.start()
 
     def launch_registration(self):
         self.t2.start()
@@ -158,9 +164,6 @@ class GUI(tk.Tk):
 
     def analysis_thread(self):
         self.analyzer.launch_analysis()
-
-    def set_progress(self):
-        self.progress['value'] += round(self.analyzer.index / self.vertex_number * 100, 2)
 
     def launch_analysis(self):
         if not self.t1.is_alive() or not self.t2.is_alive():
