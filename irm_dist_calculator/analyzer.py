@@ -37,6 +37,7 @@ class Analyzer:
         else:
             pass
         self.scope_radius = scope
+        self.fig = None
 
     def launch_analysis(self):
         for ind in range(self.points_vertex.shape[0]):
@@ -63,11 +64,9 @@ class Analyzer:
                 good_candidates_median = np.array([0, 0, 0])
             self.points_mean_nodes_real_grid.append(good_candidates_mean)
             self.points_median_nodes_real_grid.append(good_candidates_median)
-        self.pack_results()
-
-    def pack_results(self):
         self.points_mean_nodes_real_grid = np.array(self.points_mean_nodes_real_grid)
         self.points_median_nodes_real_grid = np.array(self.points_median_nodes_real_grid)
+        self.parent.popup_progress.notify_end()
 
     def load_results(self, median_nodes, mean_nodes):
         mean_nodes = o3d.io.read_point_cloud(mean_nodes)
@@ -95,12 +94,13 @@ class Analyzer:
         self.diff_mean = np.array(self.diff_mean)
 
     def save_results(self, name):
+        self.prepare_display()
         np.save(self.data_dir + name + "_diff_mean", self.diff_mean)
         np.save(self.data_dir + name + "_diff_median", self.diff_median)
-        plt.savefig(self.data_dir + name + "_analysis.png", dpi=500)
+        self.fig.savefig(self.data_dir + name + "_analysis.png", dpi=500)
 
     def prepare_display(self):
-        fig, ax = plt.subplots(2, 3, figsize=(20, 10))
+        self.fig, ax = plt.subplots(2, 3, figsize=(18, 8))
         bin_number = 70
         _, bins_mean_x, _ = ax[0, 0].hist(self.diff_mean[:, 0], bins=bin_number, color='b')
         ax[0, 0].set_xlabel("Deviation [mm]")
@@ -190,8 +190,8 @@ class Analyzer:
         ax[1, 2].add_artist(
             AnchoredText('$\\mu = $' + str(round(mu_median_z, 2)) + ' mm\n$\\sigma = $' + str(round(sigma_median_z, 2)) + ' mm',
                          loc="upper right"))
-        plt.suptitle(self.data_dir)
-        plt.tight_layout()
+        self.fig.suptitle(self.data_dir)
+        self.fig.tight_layout()
 
     def display_results(self):
         self.prepare_display()

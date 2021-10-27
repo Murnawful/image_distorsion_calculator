@@ -74,9 +74,12 @@ class GUI(tk.Tk):
         analysis_button = ttk.Button(self, text='Launch analysis', command=self.launch_analysis)
         analysis_button.grid(row=3, column=0, columnspan=2, sticky='ew')
 
+        save_analysis_button = ttk.Button(self, text='Save results', command=self.save_results)
+        save_analysis_button.grid(row=4, column=0, columnspan=2, sticky='ew')
+
         self.bind("<Control-q>", self.close_app)
 
-    def close_app(self, event):
+    def close_app(self, e=tk.Event()):
         answer = askyesno(title="Quit", message="Are you sure you want to quit ?")
         if answer:
             self.destroy()
@@ -162,6 +165,8 @@ class GUI(tk.Tk):
     def launch_registration(self):
         self.t1 = threading.Thread(target=self.registration_thread)
         self.t2 = threading.Thread(target=self.display_progress)
+        self.t1.setDaemon(True)
+        self.t2.setDaemon(True)
         self.t2.start()
         self.t1.start()
 
@@ -173,13 +178,14 @@ class GUI(tk.Tk):
                                    file_registered="registeredGrid_full.ply",
                                    scope=3e-3,
                                    parent=self)
-        self.popup_progress = progress_window.ProgressWindow(self.analyzer)
+        self.popup_progress = progress_window.ProgressWindow(self)
 
         self.t1 = threading.Thread(target=self.analyzer.launch_analysis)
         self.t2 = threading.Thread(target=self.popup_progress.change_progress)
+        self.t1.setDaemon(True)
+        self.t2.setDaemon(True)
         self.t2.start()
         self.t1.start()
 
-        # self.analyzer.compute_results()
-        # self.analyzer.display_results()
-        # self.popup_progress.destroy()
+    def save_results(self):
+        self.analyzer.save_results("results")

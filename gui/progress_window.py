@@ -2,15 +2,17 @@ import tkinter as tk
 from tkinter import ttk
 
 from tkinter.messagebox import showinfo
+from tkinter.messagebox import askyesno
 
 import numpy as np
 
 
 class ProgressWindow(tk.Toplevel):
-    def __init__(self, an):
+    def __init__(self, parent):
         super().__init__()
 
-        self.analyser = an
+        self.analyser = parent.analyzer
+        self.parent = parent
 
         self.progress = None
         self.progress_label = None
@@ -37,7 +39,8 @@ class ProgressWindow(tk.Toplevel):
             self.progress['value'] += 100 / tot
         self.ind_copy = np.copy(ind)
         self.update()
-        if ind == tot:
-            showinfo(title="Done", message="Node analysis")
-            self.analyser.compute_results()
-            self.analyser.display_results()
+
+    def notify_end(self):
+        showinfo(title="Done", message="Node analysis")
+        self.analyser.compute_results()
+        self.destroy()
