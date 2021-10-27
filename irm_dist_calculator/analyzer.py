@@ -11,27 +11,12 @@ def distance(a, b):
 
 
 class Analyzer:
-    pcd_source = None
-    pcd_registered = None
-    pcd_vertex = None
-    points_source = None
-    points_registered = None
-    points_vertex = None
-    data_dir = None
-    scope_radius = None
-    diff_mean = None
-    diff_median = None
-
-    points_close_to_vertices = []
-    points_mean_nodes_real_grid = []
-    points_median_nodes_real_grid = []
-
     def __init__(self, dir_tofile=None,
                  file_source=None,
                  file_registered=None,
                  file_vertex=None,
-                 scope=None):
-        self.index = 0
+                 scope=None,
+                 parent=None):
         if dir_tofile is not None:
             self.data_dir = dir_tofile
             self.pcd_source = o3d.io.read_point_cloud(dir_tofile + file_source)
@@ -40,13 +25,23 @@ class Analyzer:
             self.points_source = np.asarray(self.pcd_source.points)
             self.points_registered = np.asarray(self.pcd_registered.points)
             self.points_vertex = np.asarray(self.pcd_vertex.points)
+            self.parent = parent
+
+            self.diff_mean = None
+            self.diff_median = None
+            self.index = 0
+
+            self.points_close_to_vertices = []
+            self.points_mean_nodes_real_grid = []
+            self.points_median_nodes_real_grid = []
         else:
             pass
         self.scope_radius = scope
 
     def launch_analysis(self):
-        for self.index in range(self.points_vertex.shape[0]):
-            print("Treating node number " + str(self.index + 1) + " out of " + str(self.points_vertex.shape[0]))
+        for ind in range(self.points_vertex.shape[0]):
+            self.index = ind
+            self.parent.popup_progress.change_progress()
             points_close_to_vertices = [self.points_source[j, :] for j in range(self.points_source.shape[0]) if
                                         distance(self.points_vertex[self.index, :], self.points_source[j, :]) < self.scope_radius]
             points_close_to_vertices = np.array(points_close_to_vertices)
@@ -68,6 +63,9 @@ class Analyzer:
                 good_candidates_median = np.array([0, 0, 0])
             self.points_mean_nodes_real_grid.append(good_candidates_mean)
             self.points_median_nodes_real_grid.append(good_candidates_median)
+        self.pack_results()
+
+    def pack_results(self):
         self.points_mean_nodes_real_grid = np.array(self.points_mean_nodes_real_grid)
         self.points_median_nodes_real_grid = np.array(self.points_median_nodes_real_grid)
 
@@ -198,3 +196,9 @@ class Analyzer:
     def display_results(self):
         self.prepare_display()
         plt.show()
+
+    def get_index(self):
+        return self.index
+
+    def get_vertex_number(self):
+        return self.points_vertex.shape[0]

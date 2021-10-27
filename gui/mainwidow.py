@@ -7,6 +7,7 @@ from gui import file_manager
 from gui import dicom_viewer_frame
 from gui import dicom_imager
 from gui import cloud_point_preparer
+from gui import progress_window
 
 from irm_dist_calculator import imageGrid as ig
 from irm_dist_calculator import referenceGrid as rg
@@ -41,8 +42,10 @@ class GUI(tk.Tk):
         self.t1 = None
         self.t2 = None
         self.popup_progress = None
+        self.progress_label = None
+        self.progress = None
+        self.stop_ = False
 
-        self.vertex_number = 0
         self.analyzer = None
 
         self.init_gui()
@@ -66,12 +69,10 @@ class GUI(tk.Tk):
         self.dicom_viewer_frame.init_viewer_frame()
 
         self.pcd_preparer = cloud_point_preparer.PCDPrepare(self)
-        self.pcd_preparer.grid(row=2, column=0, columnspan=2, sticky='nsew')
+        self.pcd_preparer.grid(row=2, column=0, columnspan=2, sticky='nsew', padx=35)
 
         analysis_button = ttk.Button(self, text='Launch analysis', command=self.launch_analysis)
-
-        self.t1 = threading.Thread(target=self.registration_thread)
-        self.t2 = threading.Thread(target=self.display_progress)
+        analysis_button.grid(row=3, column=0, columnspan=2, sticky='ew')
 
         self.bind("<Control-q>", self.close_app)
 
@@ -159,21 +160,26 @@ class GUI(tk.Tk):
         progress.start()
 
     def launch_registration(self):
+        self.t1 = threading.Thread(target=self.registration_thread)
+        self.t2 = threading.Thread(target=self.display_progress)
         self.t2.start()
         self.t1.start()
 
-    def analysis_thread(self):
-        self.analyzer.launch_analysis()
-
     def launch_analysis(self):
-        if not self.t1.is_alive() or not self.t2.is_alive():
-            self.analyzer = a.Analyzer(dir_tofile="../data/",
-                                       file_source="realGrid.ply",
-                                       file_vertex="registeredGrid_vertex.ply",
-                                       file_registered="registeredGrid_full.ply")
-            self.vertex_number = self.analyzer.points_vertex.shape[0]
-            self.progress['mode'] = 'determinate'
-            self.t2 = threading.Thread(target=self.set_progress)
-            self.t1 = threading.Thread(target=self.analysis_thread)
-            self.t2.start()
-            self.t1.start()
+        self.stop_ = False
+        self.analyzer = a.Analyzer(dir_tofile="data/",
+                                   file_source="realGrid.ply",
+                                   file_vertex="registeredGrid_vertex.ply",
+                                   file_registered="registeredGrid_full.ply",
+                                   scope=3e-3,
+                                   parent=self)
+        self.popup_progress = progress_window.ProgressWindow(self.analyzer)
+
+        self.t1 = threading.Thread(target=self.analyzer.launch_analysis)
+        self.t2 = threading.Thread(target=self.popup_progress.change_progress)
+        self.t2.start()
+        self.t1.start()
+
+        # self.analyzer.compute_results()
+        # self.analyzer.display_results()
+        # self.popup_progress.destroy()
