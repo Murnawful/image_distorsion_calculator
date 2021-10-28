@@ -51,4 +51,27 @@ If you are satisfied with the placement of the virtual grid, enter parameters in
 These parameters will define how the virtual grid will be fitted to the ROI. Please read [this link](http://www.open3d.org/docs/0.12.0/tutorial/pipelines/icp_registration.html)
 for more information on the registration that is performed. The chosen ICP is point-to-point. Once the parameters are chosen, press
 the **Launch coregistration** button. A new _Open3D_ window will display the result of the registration. We recommend using
-_)_ and _-_ keys of your (AZERTY) keyboard in order to assess the quality of the regsitration.
+")" and "-" keys of your (AZERTY) keyboard in order to assess the quality of the regsitration. Close the Open3D window by hitting
+the "a" key (AZERTY keyboard). If the registration is not to your liking, you can deny saving and try the registration once again
+with different parameters.
+
+Saving the result of the registration is primordial in order to perform node analysis. If the registration is deemed satisfying,
+it must be saved. Node analysis can be launched with the corresponding button. This analysis will be performed with the saved
+results as a source. The node analysis is described in the next section.
+
+## Node analysis
+Node analysis consists in comparing position of nodes of the virtual grid with that of the nodes of the real grid.
+
+![nodes](/im/nodes.png)
+
+Once the registration is done, the transformation applied to the virtual grid in order to fit the real grid is applied to a point cloud that corresponds to
+the nodes of the virtual grid. For each of the nodes, points of the real grid standing in a radius of 3 mm (this value can be changed
+in the source code in _Analyzer_ class, _launch_analysis()_ method) are saved. All these points are potential candidates to be the corresponding real grid node. In order to find it,
+each of these points is looked at by counting the number of points that stand in a radius of 0.7 mm around this point (this value
+can be changed in the source code in _Analyzer_ class, _launch_analysis()_ method). The algorithm then only selects points that
+have the maximum number of close neighbours and computes the mean position of all these good candidates. This mean position
+is considered as being the corresponding virtual grid node. This process is performed for each node of the virtual grid.
+
+Once this process is over, deviation between virtual grid nodes and real grid nodes is computed for all directions of space.
+If the user chooses to save the results (with the corresponding button), a bar chart is saved in the _data_ folder along with
+numpy arrays containing the corresponding data.
