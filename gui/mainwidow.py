@@ -16,8 +16,16 @@ from irm_dist_calculator import analyzer as a
 import pydicom as pdcm
 
 import threading
+import os
 
 import open3d as o3d
+
+
+def clear_data():
+    folder = "data/"
+    for filename in os.listdir(folder):
+        file_path = os.path.join(folder, filename)
+        os.unlink(file_path)
 
 
 class GUI(tk.Tk):
@@ -76,6 +84,9 @@ class GUI(tk.Tk):
 
         save_analysis_button = ttk.Button(self, text='Save results', command=self.save_results)
         save_analysis_button.grid(row=4, column=0, columnspan=2, sticky='ew')
+
+        clear_button = ttk.Button(self, text="Clear data", command=clear_data)
+        clear_button.grid(row=5, column=0, columnspan=2, sticky='ew')
 
         self.bind("<Control-q>", self.close_app)
 

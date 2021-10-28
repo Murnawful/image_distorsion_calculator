@@ -10,8 +10,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-gc.collect()
+    gc.collect()
 
 
 ################ Stereotactic space reconstruction ################

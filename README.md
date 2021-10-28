@@ -69,8 +69,8 @@ the nodes of the virtual grid. For each of the nodes, points of the real grid st
 in the source code in _Analyzer_ class, _launch_analysis()_ method) are saved. All these points are potential candidates to be the corresponding real grid node. In order to find it,
 each of these points is looked at by counting the number of points that stand in a radius of 0.7 mm around this point (this value
 can be changed in the source code in _Analyzer_ class, _launch_analysis()_ method). The algorithm then only selects points that
-have the maximum number of close neighbours and computes the mean position of all these good candidates. This mean position
-is considered as being the corresponding virtual grid node. This process is performed for each node of the virtual grid.
+have the maximum number of close neighbours and computes the mean and median positions of all these good candidates. These mean and median positions
+are considered as being the best candidates for the position of the corresponding real grid node. This process is performed for each node of the virtual grid.
 
 Once this process is over, deviation between virtual grid nodes and real grid nodes is computed for all directions of space.
 If the user chooses to save the results (with the corresponding button), a bar chart is saved in the _data_ folder along with
