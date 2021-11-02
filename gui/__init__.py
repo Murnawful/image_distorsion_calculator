@@ -3,4 +3,5 @@ __all__ = ["mainwidow",
            "cloud_point_preparer",
            "dicom_imager",
            "dicom_viewer_frame",
-           "statusbar"]
+           "statusbar",
+           "progress_window"]

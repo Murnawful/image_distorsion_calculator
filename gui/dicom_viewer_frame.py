@@ -188,15 +188,14 @@ class DicomViewerFrame(Frame):
         return 0
 
     def on_move_press_axial(self, event):
-        curX, curY = (event.x, event.y)
-        self.end_x = curX
-        self.end_y = curY
+        self.end_x = event.x
+        self.end_y = event.y
 
         self.motion_axial(event)
 
         # expand rectangle as you drag the mouse
-        self.canvas_axial.coords(self.selection_axial, self.start_x, self.start_y, curX, curY)
-        self.canvas_coronal.coords(self.selection_coronal, 0, self.start_x, self.arr_coronal.shape[1], curX)
+        self.canvas_axial.coords(self.selection_axial, self.start_x, self.start_y, self.end_x, self.end_y)
+        self.canvas_coronal.coords(self.selection_coronal, 0, self.start_x, self.arr_coronal.shape[1], self.end_x)
         return 0
 
     def scroll_axial_images(self, event):
@@ -224,7 +223,6 @@ class DicomViewerFrame(Frame):
     def on_button_press_coronal(self, event):
         self.canvas_coronal.delete(self.selection_coronal)
 
-        # save mouse drag start position
         self.start_z = event.x
 
         self.selection_coronal = self.canvas_coronal.create_rectangle(self.start_z, self.start_x, 0,
@@ -232,13 +230,12 @@ class DicomViewerFrame(Frame):
         return 0
 
     def on_move_press_coronal(self, event):
-        curZ = event.x
-        self.end_z = curZ
+        self.end_z = event.x
 
         self.motion_coronal(event)
 
         # expand rectangle as you drag the mouse
-        self.canvas_coronal.coords(self.selection_coronal, self.start_z, self.start_x, curZ, self.end_x)
+        self.canvas_coronal.coords(self.selection_coronal, self.start_z, self.start_x, self.end_z, self.end_x)
         return 0
 
     def on_button_release(self, event):

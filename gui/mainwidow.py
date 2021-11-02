@@ -22,6 +22,7 @@ import open3d as o3d
 
 
 def clear_data():
+    """ Clearing data saved in the data/ folder when pressing clear button """
     folder = "data/"
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
@@ -31,6 +32,7 @@ def clear_data():
 class GUI(tk.Tk):
 
     def __init__(self):
+        """ Constructor """
         super().__init__()
 
         self.filenames = None
@@ -52,13 +54,13 @@ class GUI(tk.Tk):
         self.popup_progress = None
         self.progress_label = None
         self.progress = None
-        self.stop_ = False
 
         self.analyzer = None
 
         self.init_gui()
 
     def init_gui(self):
+        """ Initialisation of main window, where all the different widgets are prepared """
         window_width = self.winfo_screenwidth()
         window_height = self.winfo_screenheight()
 
@@ -91,11 +93,14 @@ class GUI(tk.Tk):
         self.bind("<Control-q>", self.close_app)
 
     def close_app(self, e=tk.Event()):
+        """ Protocol occurring when quitting the app, either by close the window with the mouse or by hitting Ctrl-q """
         answer = askyesno(title="Quit", message="Are you sure you want to quit ?")
         if answer:
             self.destroy()
 
     def load_dicom_files(self):
+        """ Reads the selected DICOM files datasets and gets their pixel array in order to prepare the view for the
+        DICOM viewer frame """
         try:
             self.filenames = self.file_manager_frame.filenames
             self.working_directory = self.file_manager_frame.files_directory + "/"
@@ -120,6 +125,8 @@ class GUI(tk.Tk):
             showerror(title='Error', message='No files present in the file manager')
 
     def sort_datasets(self):
+        """ Sorting the datasets in order to always have the right file coming at the right moment when scrolling
+        views """
         try:
             self.dicom_datasets.sort(key=lambda x: x.InstanceNumber)
         except AttributeError:
@@ -129,6 +136,8 @@ class GUI(tk.Tk):
                 pass
 
     def place_virtual_grid(self):
+        """ Retrieves the coordinates of the user-defined ROI and center of virtual grid along with the upper and
+        lower bounds on DICOM pixel array values """
         try:
             roi = self.dicom_viewer_frame.roi
             arr = self.imager.values
@@ -176,13 +185,10 @@ class GUI(tk.Tk):
     def launch_registration(self):
         self.t1 = threading.Thread(target=self.registration_thread)
         self.t2 = threading.Thread(target=self.display_progress)
-        self.t1.setDaemon(True)
-        self.t2.setDaemon(True)
         self.t2.start()
         self.t1.start()
 
     def launch_analysis(self):
-        self.stop_ = False
         self.analyzer = a.Analyzer(dir_tofile="data/",
                                    file_source="realGrid.ply",
                                    file_vertex="registeredGrid_vertex.ply",
@@ -193,8 +199,6 @@ class GUI(tk.Tk):
 
         self.t1 = threading.Thread(target=self.analyzer.launch_analysis)
         self.t2 = threading.Thread(target=self.popup_progress.change_progress)
-        self.t1.setDaemon(True)
-        self.t2.setDaemon(True)
         self.t2.start()
         self.t1.start()
 
