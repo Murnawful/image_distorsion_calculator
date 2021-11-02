@@ -83,7 +83,7 @@ class PCDPrepare(tk.Frame):
         return self.current_value_lower
 
     def get_transformation_string(self):
-        return self.transformation
+        return str(self.transformation)
 
     def set_transformation(self, t):
         self.transformation = t
