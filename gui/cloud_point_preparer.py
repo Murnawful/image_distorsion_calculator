@@ -1,6 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 
+import matplotlib
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+
+import numpy as np
+
+matplotlib.use('TkAgg')
+
 
 class PCDPrepare(tk.Frame):
     def __init__(self, parent):
@@ -21,6 +28,8 @@ class PCDPrepare(tk.Frame):
 
         self.value_reg_coarse = tk.StringVar()
         self.value_reg_fine = tk.StringVar()
+        self.transformation = np.identity(4)
+        self.trans_label = None
 
         self.init_frame()
 
@@ -64,11 +73,23 @@ class PCDPrepare(tk.Frame):
                                          command=self.parent.launch_registration)
         registration_button.grid(row=8, column=0, columnspan=3, sticky="new")
 
+        self.trans_label = tk.Label(self, text="Transformation: \n" + self.get_transformation_string())
+        self.trans_label.grid(row=9, column=0, sticky='ew')
+
     def get_current_upper(self):
         return self.current_value_upper
 
     def get_current_lower(self):
         return self.current_value_lower
+
+    def get_transformation_string(self):
+        return self.transformation
+
+    def set_transformation(self, t):
+        self.transformation = t
+        np.set_printoptions(suppress=False, precision=2)
+        self.trans_label.config(text=self.transformation)
+        return 0
 
     def slider_changed_upper(self, event):
         self.label_upper.configure(text="Upper bound: " + str(self.get_current_upper().get()))

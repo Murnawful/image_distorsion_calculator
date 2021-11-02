@@ -171,4 +171,4 @@ class ReferenceGrid:
         print("Registration done")
         print("Transformation vector for target:")
         print(self.pose_graph.nodes[1].pose)
-        return 0
+        return self.pose_graph.nodes[1].pose

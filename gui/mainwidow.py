@@ -4,14 +4,14 @@ from tkinter.messagebox import showerror
 from tkinter.messagebox import askyesno
 
 from gui import file_manager
-from gui import dicom_viewer_frame
-from gui import dicom_imager
+from gui import dicom_binary_viewer_frame
+from gui import dicom_binary_imager
 from gui import cloud_point_preparer
 from gui import progress_window
 
 from irm_dist_calculator import imageGrid as ig
 from irm_dist_calculator import referenceGrid as rg
-from irm_dist_calculator import analyzer as a
+from irm_dist_calculator import node_analyzer as a
 
 import pydicom as pdcm
 
@@ -74,7 +74,7 @@ class GUI(tk.Tk):
         load_dicom_button = ttk.Button(self, text='Load DICOM files', command=self.load_dicom_files)
         load_dicom_button.grid(row=1, column=0, columnspan=2, sticky='new')
 
-        self.dicom_viewer_frame = dicom_viewer_frame.DicomViewerFrame(self)
+        self.dicom_viewer_frame = dicom_binary_viewer_frame.DicomBinaryViewerFrame(self)
         self.dicom_viewer_frame.grid(row=0, column=2, rowspan=3, sticky='nsew')
         self.dicom_viewer_frame.init_viewer_frame()
 
@@ -82,15 +82,21 @@ class GUI(tk.Tk):
         self.pcd_preparer.grid(row=2, column=0, columnspan=2, sticky='nsew', padx=35)
 
         analysis_button = ttk.Button(self, text='Launch analysis', command=self.launch_analysis)
-        analysis_button.grid(row=3, column=0, columnspan=2, sticky='ew')
+        analysis_button.grid(row=3, column=0, sticky='ew')
 
         save_analysis_button = ttk.Button(self, text='Save results', command=self.save_results)
-        save_analysis_button.grid(row=4, column=0, columnspan=2, sticky='ew')
+        save_analysis_button.grid(row=3, column=1, sticky='ew')
 
         clear_button = ttk.Button(self, text="Clear data", command=clear_data)
-        clear_button.grid(row=5, column=0, columnspan=2, sticky='ew')
+        clear_button.grid(row=4, column=0, sticky='ew')
+
+        choose_reference_button = ttk.Button(self, text="Choose CBCT reference", command=self.retrieve_reference)
+        choose_reference_button.grid(row=4, column=1, sticky='ew')
 
         self.bind("<Control-q>", self.close_app)
+
+    def retrieve_reference(self):
+        pass
 
     def close_app(self, e=tk.Event()):
         """ Protocol occurring when quitting the app, either by close the window with the mouse or by hitting Ctrl-q """
@@ -111,7 +117,7 @@ class GUI(tk.Tk):
 
             self.sort_datasets()
 
-            self.imager = dicom_imager.DicomImager(self.dicom_datasets)
+            self.imager = dicom_binary_imager.DicomBinaryImager(self.dicom_datasets)
 
             self.dicom_viewer_frame.set_imager(self.imager)
             im_axial, index_axial = self.imager.get_current_axial_image(self.dicom_viewer_frame.upper,
@@ -140,7 +146,7 @@ class GUI(tk.Tk):
         lower bounds on DICOM pixel array values """
         try:
             roi = self.dicom_viewer_frame.roi
-            arr = self.imager.values
+            arr = self.imager._values
             upper = self.pcd_preparer.current_value_upper.get()
             lower = self.pcd_preparer.current_value_lower.get()
             irm = self.pcd_preparer.is_irm.get()
@@ -160,18 +166,20 @@ class GUI(tk.Tk):
 
     def registration_thread(self):
         try:
-            self.ref_grid.register(self.im_grid.pcd, float(self.pcd_preparer.value_reg_coarse.get()),
-                                   float(self.pcd_preparer.value_reg_fine.get()))
+            self.pcd_preparer.set_transformation(self.ref_grid.register(self.im_grid.pcd,
+                                                                        float(self.pcd_preparer.value_reg_coarse.get()),
+                                                                        float(self.pcd_preparer.value_reg_fine.get())))
             self.popup_progress.destroy()
             o3d.visualization.draw_geometries([self.ref_frame, self.im_grid.pcd, self.ref_grid.pcd])
             answer = askyesno(title="Saving", message="Save results of registration ?")
             if answer:
                 self.ref_grid.save_point_cloud("data/", "registeredGrid")
                 self.im_grid.save_point_cloud("data/", "realGrid")
-        except TypeError:
+        except TypeError as e:
             showerror(title="Error", message="No parameters for registration were given !")
-        except ValueError:
+        except ValueError as v:
             showerror(title="Error", message="Wrong values for coregistration !")
+        return 0
 
     def display_progress(self):
         self.popup_progress = tk.Toplevel()
@@ -189,12 +197,12 @@ class GUI(tk.Tk):
         self.t1.start()
 
     def launch_analysis(self):
-        self.analyzer = a.Analyzer(dir_tofile="data/",
-                                   file_source="realGrid.ply",
-                                   file_vertex="registeredGrid_vertex.ply",
-                                   file_registered="registeredGrid_full.ply",
-                                   scope=3e-3,
-                                   parent=self)
+        self.analyzer = a.NodeAnalyzer(dir_tofile="data/",
+                                       file_source="realGrid.ply",
+                                       file_vertex="registeredGrid_vertex.ply",
+                                       file_registered="registeredGrid_full.ply",
+                                       scope=3e-3,
+                                       parent=self)
         self.popup_progress = progress_window.ProgressWindow(self)
 
         self.t1 = threading.Thread(target=self.analyzer.launch_analysis)

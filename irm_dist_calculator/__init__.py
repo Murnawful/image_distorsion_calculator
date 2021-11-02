@@ -1,4 +1,5 @@
-__all__ = ["analyzer",
+__all__ = ["node_analyzer",
            "referenceGrid",
            "imageGrid",
-           "referenceFiducials"]
+           "referenceFiducials",
+           "diff_analyzer"]

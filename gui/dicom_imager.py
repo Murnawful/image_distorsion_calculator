@@ -1,9 +1,11 @@
 import numpy as np
 
+from abc import ABC
 
-class DicomImager:
+
+class DicomImager(ABC):
     def __init__(self, datasets):
-        self.values = None
+        self._values = None
 
         self.datasets = datasets
         self._index_axial = 0
@@ -21,13 +23,13 @@ class DicomImager:
                      np.arange(0.0, (self.size[1] + 1) * self.spacings[1], self.spacings[1]))
 
         # Load pixel data
-        self.values = np.zeros(self.size, dtype='int32')
+        self._values = np.zeros(self.size, dtype='int32')
         for i, d in enumerate(datasets):
             # Also performs rescaling. 'unsafe' since it converts from float64 to int32
-            np.copyto(self.values[:, :, i], d.pixel_array, 'unsafe')
+            np.copyto(self._values[:, :, i], d.pixel_array, 'unsafe')
 
-        self.max_value = np.amax(self.values)
-        self.min_value = np.amin(self.values)
+        self.max_value = np.amax(self._values)
+        self.min_value = np.amin(self._values)
 
     @property
     def index_coronal(self):
@@ -69,36 +71,14 @@ class DicomImager:
     def window_center(self, value):
         self._window_center = value
 
-    def get_coronal_image(self, index, upper, lower):
-        # int32 true values (HU or brightness units)
-        img = self.values[index, :, :]
+    def get_coronal_image(self, index, *args, **kwargs):
+        pass
 
-        res1 = np.zeros(img.shape)
-        res1[img < upper] = 1
-        res1[img < lower] = 0
+    def get_axial_image(self, index, *args, **kwargs):
+        pass
 
-        # Cast to RGB image so that Tkinter can handle it
-        res = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-        res[:, :, 0] = res[:, :, 1] = res[:, :, 2] = res1 * 255
+    def get_current_coronal_image(self, *args, **kwargs):
+        pass
 
-        return res
-
-    def get_axial_image(self, index, upper, lower):
-        # int32 true values (HU or brightness units)
-        img = self.values[:, :, index]
-
-        res1 = np.zeros(img.shape)
-        res1[img < upper] = 1
-        res1[img < lower] = 0
-
-        # Cast to RGB image so that Tkinter can handle it
-        res = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
-        res[:, :, 0] = res[:, :, 1] = res[:, :, 2] = res1 * 255
-
-        return res
-
-    def get_current_coronal_image(self, upper, lower):
-        return self.get_coronal_image(self._index_coronal, upper, lower), self._index_coronal
-
-    def get_current_axial_image(self, upper, lower):
-        return self.get_axial_image(self._index_axial, upper, lower), self._index_axial
+    def get_current_axial_image(self, *args, **kwargs):
+        pass
