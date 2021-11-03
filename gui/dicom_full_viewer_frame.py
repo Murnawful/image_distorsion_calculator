@@ -95,7 +95,7 @@ if __name__ == "__main__":
     up = DicomFullViewerFrame(parent)
     up.pack()
 
-    dir = "../../../im_DICOM/new_acquisition_IRM_CBCT/NA_CBCT_wo_H2O/"
+    dir = "../../../im_DICOM/new_acquisition_IRM_CBCT/NA_3DT2_60mm/"
 
     datasets = []
     for filename in os.listdir(dir):
