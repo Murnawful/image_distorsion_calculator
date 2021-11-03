@@ -8,6 +8,7 @@ from gui import dicom_binary_viewer_frame
 from gui import dicom_binary_imager
 from gui import cloud_point_preparer
 from gui import progress_window
+from gui import analysis_choice
 
 from irm_dist_calculator import imageGrid as ig
 from irm_dist_calculator import referenceGrid as rg
@@ -39,9 +40,14 @@ class GUI(tk.Tk):
         self.working_directory = None
         self.dicom_datasets = []
         self.file_manager_frame = None
+        self.choice_control_frame = None
+
         self.dicom_viewer_frame = None
-        self.imager = None
+        self.imager_binary = None
         self.pcd_preparer = None
+
+        self.frame_control = {}
+        self.frame_viewer = {}
 
         self.im_grid = None
         self.ref_grid = None
@@ -71,27 +77,33 @@ class GUI(tk.Tk):
         self.file_manager_frame = file_manager.FileManager(self)
         self.file_manager_frame.grid(row=0, column=0, columnspan=2, sticky='nw')
 
+        self.choice_control_frame = analysis_choice.ControlAnalysisChoice(self)
+        self.choice_control_frame.grid(row=1, column=0, columnspan=2, sticky='ew')
+
         load_dicom_button = ttk.Button(self, text='Load DICOM files', command=self.load_dicom_files)
-        load_dicom_button.grid(row=1, column=0, columnspan=2, sticky='new')
+        load_dicom_button.grid(row=2, column=0, columnspan=2, sticky='new')
 
         self.dicom_viewer_frame = dicom_binary_viewer_frame.DicomBinaryViewerFrame(self)
-        self.dicom_viewer_frame.grid(row=0, column=2, rowspan=3, sticky='nsew')
+        self.dicom_viewer_frame.grid(row=0, column=2, rowspan=6, sticky='nsew')
         self.dicom_viewer_frame.init_viewer_frame()
 
         self.pcd_preparer = cloud_point_preparer.PCDPrepare(self)
-        self.pcd_preparer.grid(row=2, column=0, columnspan=2, sticky='nsew', padx=35)
+        self.pcd_preparer.grid(row=3, column=0, columnspan=2, sticky='ew', padx=35)
+
+        self.frame_control[0] = None
+        self.frame_control[1] = self.pcd_preparer
 
         analysis_button = ttk.Button(self, text='Launch analysis', command=self.launch_analysis)
-        analysis_button.grid(row=3, column=0, sticky='ew')
+        analysis_button.grid(row=4, column=0, sticky='ew')
 
         save_analysis_button = ttk.Button(self, text='Save results', command=self.save_results)
-        save_analysis_button.grid(row=3, column=1, sticky='ew')
+        save_analysis_button.grid(row=4, column=1, sticky='ew')
 
         clear_button = ttk.Button(self, text="Clear data", command=clear_data)
-        clear_button.grid(row=4, column=0, sticky='ew')
+        clear_button.grid(row=5, column=0, sticky='ew')
 
         choose_reference_button = ttk.Button(self, text="Choose CBCT reference", command=self.retrieve_reference)
-        choose_reference_button.grid(row=4, column=1, sticky='ew')
+        choose_reference_button.grid(row=5, column=1, sticky='ew')
 
         self.bind("<Control-q>", self.close_app)
 
@@ -117,13 +129,13 @@ class GUI(tk.Tk):
 
             self.sort_datasets()
 
-            self.imager = dicom_binary_imager.DicomBinaryImager(self.dicom_datasets)
+            self.imager_binary = dicom_binary_imager.DicomBinaryImager(self.dicom_datasets)
 
-            self.dicom_viewer_frame.set_imager(self.imager)
-            im_axial, index_axial = self.imager.get_current_axial_image(self.dicom_viewer_frame.upper,
-                                                                        self.dicom_viewer_frame.lower)
-            im_sagittal, index_sagittal = self.imager.get_current_coronal_image(self.dicom_viewer_frame.upper,
-                                                                                self.dicom_viewer_frame.lower)
+            self.dicom_viewer_frame.set_imager(self.imager_binary)
+            im_axial, index_axial = self.imager_binary.get_current_axial_image(self.dicom_viewer_frame.upper,
+                                                                               self.dicom_viewer_frame.lower)
+            im_sagittal, index_sagittal = self.imager_binary.get_current_coronal_image(self.dicom_viewer_frame.upper,
+                                                                                       self.dicom_viewer_frame.lower)
             self.dicom_viewer_frame.show_image(im_axial, index_axial, im_sagittal, index_sagittal)
 
             self.pcd_preparer.update_scales()
@@ -146,12 +158,12 @@ class GUI(tk.Tk):
         lower bounds on DICOM pixel array values """
         try:
             roi = self.dicom_viewer_frame.roi
-            arr = self.imager._values
+            arr = self.imager_binary._values
             upper = self.pcd_preparer.current_value_upper.get()
             lower = self.pcd_preparer.current_value_lower.get()
             irm = self.pcd_preparer.is_irm.get()
             center_ = self.dicom_viewer_frame.get_virtual_grid_center()
-            self.im_grid = ig.ImageGrid(values=arr, spacing=self.imager.spacings, image_roi=roi,
+            self.im_grid = ig.ImageGrid(values=arr, spacing=self.imager_binary.spacings, image_roi=roi,
                                         range_values=(lower, upper),
                                         is_mri=irm)
             self.ref_grid = rg.ReferenceGrid(center=center_)

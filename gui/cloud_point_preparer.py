@@ -1,19 +1,16 @@
 import tkinter as tk
 from tkinter import ttk
 
-import matplotlib
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-
 import numpy as np
 
-matplotlib.use('TkAgg')
 
-
-class PCDPrepare(tk.Frame):
+class PCDPrepare(ttk.LabelFrame):
     def __init__(self, parent):
         super().__init__(parent)
 
         self.parent = parent
+
+        self['text'] = "Point cloud control"
 
         self.slider_upper = None
         self.current_value_upper = tk.IntVar()
@@ -102,5 +99,5 @@ class PCDPrepare(tk.Frame):
         self.parent.dicom_viewer_frame.change_range()
 
     def update_scales(self):
-        self.slider_upper.config(to=self.parent.imager.max_value)
-        self.slider_lower.config(to=self.parent.imager.max_value)
+        self.slider_upper.config(to=self.parent.imager_binary.max_value)
+        self.slider_lower.config(to=self.parent.imager_binary.max_value)
