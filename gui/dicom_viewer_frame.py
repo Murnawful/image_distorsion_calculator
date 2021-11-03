@@ -79,7 +79,7 @@ class DicomViewerFrame(Frame):
         self.canvas_coronal.bind('<Motion>', self.motion_coronal)
         return 0
 
-    def show_image(self, array_axial, index_axial, array_sagittal, index_sagittal):
+    def show_image(self, array_axial, index_axial, array_sagittal, index_sagittal, *args, **kwargs):
         self.upper = int(self.parent.pcd_preparer.get_current_upper().get())
         self.lower = int(self.parent.pcd_preparer.get_current_lower().get())
 
