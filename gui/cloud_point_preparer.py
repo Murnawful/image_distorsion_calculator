@@ -4,13 +4,11 @@ from tkinter import ttk
 import numpy as np
 
 
-class PCDPrepare(ttk.LabelFrame):
+class PCDPrepare(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
         self.parent = parent
-
-        self['text'] = "Point cloud control"
 
         self.slider_upper = None
         self.current_value_upper = tk.IntVar()
@@ -33,7 +31,7 @@ class PCDPrepare(ttk.LabelFrame):
     def init_frame(self):
         self.slider_upper = ttk.Scale(self,
                                       from_=0,
-                                      to=self.parent.dicom_viewer_frame.upper,
+                                      to=self.parent.dicom_binary_viewer_frame.upper,
                                       orient='horizontal',
                                       command=self.slider_changed_upper,
                                       variable=self.current_value_upper)
@@ -43,7 +41,7 @@ class PCDPrepare(ttk.LabelFrame):
 
         self.slider_lower = ttk.Scale(self,
                                       from_=0,
-                                      to=self.parent.dicom_viewer_frame.lower,
+                                      to=self.parent.dicom_binary_viewer_frame.lower,
                                       orient='horizontal',
                                       command=self.slider_changed_lower,
                                       variable=self.current_value_lower)
@@ -90,14 +88,18 @@ class PCDPrepare(ttk.LabelFrame):
 
     def slider_changed_upper(self, event):
         self.label_upper.configure(text="Upper bound: " + str(self.get_current_upper().get()))
-        self.parent.dicom_viewer_frame.upper = int(self.get_current_upper().get())
-        self.parent.dicom_viewer_frame.change_range()
+        self.parent.dicom_binary_viewer_frame.upper = int(self.get_current_upper().get())
+        self.parent.dicom_binary_viewer_frame.change_range()
 
     def slider_changed_lower(self, event):
         self.label_lower.configure(text="Lower bound: " + str(self.get_current_lower().get()))
-        self.parent.dicom_viewer_frame.lower = int(self.get_current_lower().get())
-        self.parent.dicom_viewer_frame.change_range()
+        self.parent.dicom_binary_viewer_frame.lower = int(self.get_current_lower().get())
+        self.parent.dicom_binary_viewer_frame.change_range()
 
     def update_scales(self):
         self.slider_upper.config(to=self.parent.imager_binary.max_value)
         self.slider_lower.config(to=self.parent.imager_binary.max_value)
+
+    def reset(self):
+        for w in self.winfo_children():
+            w.quit()

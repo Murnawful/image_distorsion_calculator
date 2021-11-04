@@ -5,7 +5,9 @@ from tkinter.messagebox import askyesno
 
 from gui import file_manager
 from gui import dicom_binary_viewer_frame
+from gui import dicom_full_viewer_frame
 from gui import dicom_binary_imager
+from gui import dicom_full_imager
 from gui import cloud_point_preparer
 from gui import progress_window
 from gui import analysis_choice
@@ -42,8 +44,10 @@ class GUI(tk.Tk):
         self.file_manager_frame = None
         self.choice_control_frame = None
 
-        self.dicom_viewer_frame = None
+        self.dicom_binary_viewer_frame = None
+        self.dicom_full_viewer_frame = None
         self.imager_binary = None
+        self.imager_full = None
         self.pcd_preparer = None
 
         self.frame_control = {}
@@ -83,14 +87,19 @@ class GUI(tk.Tk):
         load_dicom_button = ttk.Button(self, text='Load DICOM files', command=self.load_dicom_files)
         load_dicom_button.grid(row=2, column=0, columnspan=2, sticky='new')
 
-        self.dicom_viewer_frame = dicom_binary_viewer_frame.DicomBinaryViewerFrame(self)
-        self.dicom_viewer_frame.grid(row=0, column=2, rowspan=6, sticky='nsew')
-        self.dicom_viewer_frame.init_viewer_frame()
+        self.dicom_binary_viewer_frame = dicom_binary_viewer_frame.DicomBinaryViewerFrame(self)
+        self.dicom_binary_viewer_frame.init_viewer_frame()
+        self.dicom_full_viewer_frame = dicom_full_viewer_frame.DicomFullViewerFrame(self)
+        self.dicom_full_viewer_frame.init_viewer_frame()
+
+        self.frame_viewer[0] = self.dicom_full_viewer_frame
+        self.frame_viewer[1] = self.dicom_binary_viewer_frame
 
         self.pcd_preparer = cloud_point_preparer.PCDPrepare(self)
-        self.pcd_preparer.grid(row=3, column=0, columnspan=2, sticky='ew', padx=35)
 
-        self.frame_control[0] = None
+        test = tk.Frame(self)
+        tk.Label(test, text="COUCOU").grid(row=0, column=0, sticky='nsew')
+        self.frame_control[0] = test
         self.frame_control[1] = self.pcd_preparer
 
         analysis_button = ttk.Button(self, text='Launch analysis', command=self.launch_analysis)
@@ -130,15 +139,23 @@ class GUI(tk.Tk):
             self.sort_datasets()
 
             self.imager_binary = dicom_binary_imager.DicomBinaryImager(self.dicom_datasets)
+            self.imager_full = dicom_full_imager.DicomFullImager(self.dicom_datasets)
 
-            self.dicom_viewer_frame.set_imager(self.imager_binary)
-            im_axial, index_axial = self.imager_binary.get_current_axial_image(self.dicom_viewer_frame.upper,
-                                                                               self.dicom_viewer_frame.lower)
-            im_sagittal, index_sagittal = self.imager_binary.get_current_coronal_image(self.dicom_viewer_frame.upper,
-                                                                                       self.dicom_viewer_frame.lower)
-            self.dicom_viewer_frame.show_image(im_axial, index_axial, im_sagittal, index_sagittal)
+            self.dicom_binary_viewer_frame.set_imager(self.imager_binary)
+            self.dicom_full_viewer_frame.set_imager(self.imager_full)
+            if self.choice_control_frame.selected_value.get() == 1:
+                im_axial, index_axial = self.imager_binary.get_current_axial_image(self.dicom_binary_viewer_frame.upper,
+                                                                                   self.dicom_binary_viewer_frame.lower)
+                im_sagittal, index_sagittal = self.imager_binary\
+                    .get_current_coronal_image(self.dicom_binary_viewer_frame.upper,
+                                               self.dicom_binary_viewer_frame.lower)
+                self.dicom_binary_viewer_frame.show_image(im_axial, index_axial, im_sagittal, index_sagittal)
+                self.pcd_preparer.update_scales()
+            else:
+                im_axial, index_axial = self.imager_full.get_current_axial_image()
+                im_sagittal, index_sagittal = self.imager_full.get_current_coronal_image()
+                self.dicom_full_viewer_frame.show_image(im_axial, index_axial, im_sagittal, index_sagittal)
 
-            self.pcd_preparer.update_scales()
         except TypeError:
             showerror(title='Error', message='No files present in the file manager')
 
@@ -157,12 +174,12 @@ class GUI(tk.Tk):
         """ Retrieves the coordinates of the user-defined ROI and center of virtual grid along with the upper and
         lower bounds on DICOM pixel array values """
         try:
-            roi = self.dicom_viewer_frame.roi
+            roi = self.dicom_binary_viewer_frame.roi
             arr = self.imager_binary._values
             upper = self.pcd_preparer.current_value_upper.get()
             lower = self.pcd_preparer.current_value_lower.get()
             irm = self.pcd_preparer.is_irm.get()
-            center_ = self.dicom_viewer_frame.get_virtual_grid_center()
+            center_ = self.dicom_binary_viewer_frame.get_virtual_grid_center()
             self.im_grid = ig.ImageGrid(values=arr, spacing=self.imager_binary.spacings, image_roi=roi,
                                         range_values=(lower, upper),
                                         is_mri=irm)

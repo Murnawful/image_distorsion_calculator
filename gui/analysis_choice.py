@@ -8,7 +8,7 @@ class ControlAnalysisChoice(ttk.LabelFrame):
 
         self.parent = container
 
-        self.selected_value = tk.IntVar()
+        self.selected_value = tk.IntVar(0)
 
         self['text'] = "Analysis type"
 
@@ -20,6 +20,12 @@ class ControlAnalysisChoice(ttk.LabelFrame):
         diff_button.grid(row=0, column=1, padx=5, pady=5)
 
     def change_frame(self):
+        frame_viewer = self.parent.frame_viewer[self.selected_value.get()]
+        other_frame_viewer = self.parent.frame_viewer[int(not self.selected_value.get())]
+        frame_viewer.grid(row=0, column=2, rowspan=6, sticky='nsew')
+        other_frame_viewer.grid_forget()
+
         frame_control = self.parent.frame_control[self.selected_value.get()]
-        frame_control.reset()
-        frame_control.tkraise()
+        other_frame_control = self.parent.frame_control[int(not self.selected_value.get())]
+        frame_control.grid(row=3, column=0, columnspan=2, sticky='ew', padx=35)
+        other_frame_control.grid_forget()
