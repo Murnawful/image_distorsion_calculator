@@ -62,6 +62,10 @@ class ReferenceFiducials:
         self.pcd_fiducial_L = o3d.geometry.PointCloud()
         self.pcd_fiducial_L.points = o3d.utility.Vector3dVector(self.data_fiducial_L)
 
+    def revert(self):
+        self.data_fiducial_R = np.asarray(self.pcd_fiducial_R.points)
+        self.data_fiducial_L = np.asarray(self.pcd_fiducial_L.points)
+
     def register(self, source, l_or_r="L", max_correspondence_distance_coarse=10e-5,
                  max_correspondence_distance_fine=1.0e-5):
         print("Starting full registration for " + l_or_r + " with maximum correspondence distance of " +
@@ -121,6 +125,7 @@ class ReferenceFiducials:
             self.pcd_fiducial_L.transform(self.pose_graph.nodes[1].pose)
         else:
             self.pcd_fiducial_R.transform(self.pose_graph.nodes[1].pose)
+        self.revert()
 
         print("Registration done")
 
@@ -143,12 +148,12 @@ class ReferenceFiducials:
             return False
 
     def define_stereotactic_space(self, size=0.05):
-        lower_z = max(np.amax(self.data_fiducial_R[:, 2]), np.amax(self.data_fiducial_L[:, 2])) + 15e-3
-        lower_x = max(np.amax(self.data_fiducial_R[:, 0]), np.amax(self.data_fiducial_L[:, 0]))
-        lower_y = max(np.amax(self.data_fiducial_R[:, 1]), np.amax(self.data_fiducial_L[:, 1]))
-        origin_x = lower_x + 5e-3
-        origin_y = lower_y + 40e-3
-        origin_z = lower_z - 200e-3
+        lower_z = max(np.amax(self.data_fiducial_R[:, 2]), np.amax(self.data_fiducial_L[:, 2]))
+        lower_x = min(np.amin(self.data_fiducial_R[:, 0]), np.amin(self.data_fiducial_L[:, 0]))
+        lower_y = min(np.amin(self.data_fiducial_R[:, 1]), np.amin(self.data_fiducial_L[:, 1]))
+        origin_x = lower_x - 17e-3
+        origin_y = lower_y - 50e-3
+        origin_z = lower_z - 224e-3
 
         ori = [origin_x, origin_y, origin_z]
         ori1 = np.copy(ori)
@@ -158,7 +163,7 @@ class ReferenceFiducials:
         ref_frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=size, origin=ori)
         ref_frame1 = o3d.geometry.TriangleMesh.create_coordinate_frame(size=size, origin=ori1)
 
-        R = ref_frame.get_rotation_matrix_from_xyz((0, 0, np.pi))
+        """R = ref_frame.get_rotation_matrix_from_xyz((0, 0, np.pi))
         ref_frame.rotate(R, center=ori)
-        ref_frame1.rotate(R, center=ori)
+        ref_frame1.rotate(R, center=ori)"""
         return ref_frame, ref_frame1

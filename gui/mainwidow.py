@@ -9,6 +9,7 @@ from gui import dicom_full_viewer_frame
 from gui import dicom_binary_imager
 from gui import dicom_full_imager
 from gui import cloud_point_preparer
+from gui import diff_preparer
 from gui import progress_window
 from gui import analysis_choice
 
@@ -49,6 +50,7 @@ class GUI(tk.Tk):
         self.imager_binary = None
         self.imager_full = None
         self.pcd_preparer = None
+        self.diff_preparer = None
 
         self.frame_control = {}
         self.frame_viewer = {}
@@ -96,10 +98,9 @@ class GUI(tk.Tk):
         self.frame_viewer[1] = self.dicom_binary_viewer_frame
 
         self.pcd_preparer = cloud_point_preparer.PCDPrepare(self)
+        self.diff_preparer = diff_preparer.DiffPreparer(self)
 
-        test = tk.Frame(self)
-        tk.Label(test, text="COUCOU").grid(row=0, column=0, sticky='nsew')
-        self.frame_control[0] = test
+        self.frame_control[0] = self.diff_preparer
         self.frame_control[1] = self.pcd_preparer
 
         analysis_button = ttk.Button(self, text='Launch analysis', command=self.launch_analysis)
